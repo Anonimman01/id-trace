@@ -58,6 +58,15 @@
             background: #008fb3;
             box-shadow: 0 0 15px #00d9ff;
         }
+        .btn-delete {
+            background: #ff4444;
+            margin-top: 10px;
+            display: none; /* Faqat natija chiqanda ko'rinadi */
+        }
+        .btn-delete:hover {
+            background: #cc0000;
+            box-shadow: 0 0 15px #ff4444;
+        }
         .results-container {
             width: 100%;
             max-width: 900px;
@@ -91,6 +100,11 @@
             text-align: center;
             margin-top: 50px;
         }
+        .stats {
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #888;
+        }
     </style>
 </head>
 <body>
@@ -105,12 +119,15 @@
         <button onclick="searchLogs()">DECODE DATA</button>
     </div>
 
+    <div id="action-area" style="margin-bottom: 20px;">
+        <button class="btn-delete" id="delete-btn" onclick="clearLogs()">PURGE ALL LOGS FOR THIS ID</button>
+    </div>
+
     <div class="results-container" id="results-area">
         <p class="no-results">Enter an ID to fetch encrypted telemetry data...</p>
     </div>
 
     <script>
-        // --- SUPABASE SOZLAMALARI ---
         const SUPABASE_URL = 'https://kisbfmcxvcwtxfwbgexb.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -118,6 +135,7 @@
         async function searchLogs() {
             const opID = document.getElementById('op-input').value.trim();
             const resultsArea = document.getElementById('results-area');
+            const deleteBtn = document.getElementById('delete-btn');
 
             if (!opID) {
                 alert("Please enter an Operation ID!");
@@ -125,13 +143,13 @@
             }
 
             resultsArea.innerHTML = `<p style="text-align:center; color:#00d9ff;">Searching database for "${opID.toUpperCase()}"...</p>`;
+            deleteBtn.style.display = 'none';
 
             try {
-                // Supabase'dan ma'lumotlarni operation_id bo'yicha qidirish
                 const { data, error } = await _supabase
                     .from('telemetry')
                     .select('*')
-                    .eq('operation_id', opID.toLowerCase()) // Kichik harf bilan solishtirish
+                    .eq('operation_id', opID.toLowerCase())
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
@@ -141,7 +159,8 @@
                     return;
                 }
 
-                resultsArea.innerHTML = ""; // Tozalash
+                deleteBtn.style.display = 'inline-block';
+                resultsArea.innerHTML = `<div class="stats">TOTAL RECORDS FOUND: ${data.length}</div>`;
 
                 data.forEach(log => {
                     const card = `
@@ -173,6 +192,27 @@
                 resultsArea.innerHTML = `<p style="color:red; text-align:center;">Error accessing database.</p>`;
             }
         }
+
+        async function clearLogs() {
+            const opID = document.getElementById('op-input').value.trim();
+            if (!confirm(`Are you sure you want to PERMANENTLY DELETE all logs for ID: ${opID.toUpperCase()}?`)) return;
+
+            try {
+                const { error } = await _supabase
+                    .from('telemetry')
+                    .delete()
+                    .eq('operation_id', opID.toLowerCase());
+
+                if (error) throw error;
+
+                alert("Logs purged successfully.");
+                searchLogs(); // Ro'yxatni yangilash
+            } catch (err) {
+                alert("Purge failed. Check database permissions.");
+                console.error(err);
+            }
+        }
     </script>
 </body>
+</html>
 </html>
