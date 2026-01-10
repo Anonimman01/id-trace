@@ -2,31 +2,176 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gojo Six Eyes | Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #050505; color: #00d9ff; font-family: sans-serif; padding: 40px; text-align: center; }
-        .log-container { background: #0a0a0a; border: 1px solid #111; padding: 20px; border-radius: 8px; max-width: 600px; margin: 20px auto; }
-        input { background: #111; border: 1px solid #00d9ff; color: white; padding: 10px; border-radius: 4px; }
-        button { background: #00d9ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
-        .data-row { text-align: left; border-bottom: 1px solid #222; padding: 10px 0; font-size: 0.8rem; }
+        body {
+            background-color: #050505;
+            color: #00d9ff;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+        .search-section {
+            background: #0a0a0a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #111;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        input {
+            background: #000;
+            border: 1px solid #00d9ff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            outline: none;
+            width: 300px;
+            font-size: 1rem;
+        }
+        button {
+            background: #00d9ff;
+            color: black;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #008fb3;
+            box-shadow: 0 0 15px #00d9ff;
+        }
+        .results-container {
+            width: 100%;
+            max-width: 900px;
+        }
+        .log-card {
+            background: #0a0a0a;
+            border: 1px solid #111;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            position: relative;
+            transition: 0.3s;
+        }
+        .log-card:hover {
+            border-color: #00d9ff;
+        }
+        .label { color: #555; font-size: 0.75rem; text-transform: uppercase; }
+        .value { color: #fff; font-size: 0.95rem; }
+        .timestamp {
+            grid-column: span 2;
+            text-align: right;
+            color: #00d9ff;
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+        .no-results {
+            color: #444;
+            text-align: center;
+            margin-top: 50px;
+        }
     </style>
 </head>
 <body>
-    <h1>🌀 SIX EYES DASHBOARD</h1>
-    <div class="log-container">
-        <input type="text" id="op-input" placeholder="Enter Operation ID">
-        <button onclick="searchLogs()">VIEW LOGS</button>
+
+    <div class="header">
+        <h1>🌀 SIX EYES DASHBOARD</h1>
+        <p style="color: #444;">Accessing the Infinity Void - Telemetry Viewer</p>
     </div>
-    <div id="results" class="log-container" style="display:none;">
-        </div>
+
+    <div class="search-section">
+        <input type="text" id="op-input" placeholder="Enter Operation ID (e.g. GOJO777)">
+        <button onclick="searchLogs()">DECODE DATA</button>
+    </div>
+
+    <div class="results-container" id="results-area">
+        <p class="no-results">Enter an ID to fetch encrypted telemetry data...</p>
+    </div>
 
     <script>
-        function searchLogs() {
-            const id = document.getElementById('op-input').value;
-            const res = document.getElementById('results');
-            res.style.display = 'block';
-            res.innerHTML = `Searching for: <b>${id}</b>...<br><br>
-            <div class="data-row"><i>Note: Database connection pending...</i></div>`;
+        // --- SUPABASE SOZLAMALARI ---
+        const SUPABASE_URL = 'https://kisbfmcxvcwtxfwbgexb.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
+        const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function searchLogs() {
+            const opID = document.getElementById('op-input').value.trim();
+            const resultsArea = document.getElementById('results-area');
+
+            if (!opID) {
+                alert("Please enter an Operation ID!");
+                return;
+            }
+
+            resultsArea.innerHTML = `<p style="text-align:center; color:#00d9ff;">Searching database for "${opID.toUpperCase()}"...</p>`;
+
+            try {
+                // Supabase'dan ma'lumotlarni operation_id bo'yicha qidirish
+                const { data, error } = await _supabase
+                    .from('telemetry')
+                    .select('*')
+                    .eq('operation_id', opID.toLowerCase()) // Kichik harf bilan solishtirish
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (data.length === 0) {
+                    resultsArea.innerHTML = `<p class="no-results">No telemetry found for ID: ${opID.toUpperCase()}</p>`;
+                    return;
+                }
+
+                resultsArea.innerHTML = ""; // Tozalash
+
+                data.forEach(log => {
+                    const card = `
+                        <div class="log-card">
+                            <div>
+                                <div class="label">IP Address</div>
+                                <div class="value">${log.ip}</div>
+                            </div>
+                            <div>
+                                <div class="label">Location</div>
+                                <div class="value">${log.location}</div>
+                            </div>
+                            <div>
+                                <div class="label">Provider</div>
+                                <div class="value">${log.provider}</div>
+                            </div>
+                            <div>
+                                <div class="label">User Agent</div>
+                                <div class="value" style="font-size:0.7rem;">${log.user_agent.substring(0, 50)}...</div>
+                            </div>
+                            <div class="timestamp">Captured at: ${new Date(log.created_at).toLocaleString()}</div>
+                        </div>
+                    `;
+                    resultsArea.innerHTML += card;
+                });
+
+            } catch (err) {
+                console.error("Search Error:", err);
+                resultsArea.innerHTML = `<p style="color:red; text-align:center;">Error accessing database.</p>`;
+            }
         }
     </script>
 </body>
