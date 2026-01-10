@@ -6,116 +6,31 @@
     <title>Gojo Six Eyes | Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            background-color: #050505;
-            color: #00d9ff;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            margin: 0;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        h1 {
-            letter-spacing: 5px;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
-        }
-        .search-section {
-            background: #0a0a0a;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #111;
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-        input {
-            background: #000;
-            border: 1px solid #00d9ff;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 4px;
-            outline: none;
-            width: 300px;
-            font-size: 1rem;
-        }
-        button {
-            background: #00d9ff;
-            color: black;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-        button:hover {
-            background: #008fb3;
-            box-shadow: 0 0 15px #00d9ff;
-        }
-        .btn-delete {
-            background: #ff4444;
-            margin-top: 10px;
-            display: none; /* Faqat natija chiqanda ko'rinadi */
-        }
-        .btn-delete:hover {
-            background: #cc0000;
-            box-shadow: 0 0 15px #ff4444;
-        }
-        .results-container {
-            width: 100%;
-            max-width: 900px;
-        }
-        .log-card {
-            background: #0a0a0a;
-            border: 1px solid #111;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            position: relative;
-            transition: 0.3s;
-        }
-        .log-card:hover {
-            border-color: #00d9ff;
-        }
+        body { background-color: #050505; color: #00d9ff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+        .header { text-align: center; margin-bottom: 40px; }
+        h1 { letter-spacing: 5px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 217, 255, 0.5); }
+        .search-section { background: #0a0a0a; padding: 20px; border-radius: 8px; border: 1px solid #111; display: flex; gap: 10px; margin-bottom: 30px; }
+        input { background: #000; border: 1px solid #00d9ff; color: white; padding: 12px 20px; border-radius: 4px; outline: none; width: 300px; }
+        button { background: #00d9ff; color: black; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #008fb3; box-shadow: 0 0 15px #00d9ff; }
+        .btn-delete { background: #ff4444; margin-top: 10px; display: none; }
+        .results-container { width: 100%; max-width: 900px; }
+        .log-card { background: #0a0a0a; border: 1px solid #111; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; transition: 0.3s; }
+        .log-card:hover { border-color: #00d9ff; }
         .label { color: #555; font-size: 0.75rem; text-transform: uppercase; }
         .value { color: #fff; font-size: 0.95rem; }
-        .timestamp {
-            grid-column: span 2;
-            text-align: right;
-            color: #00d9ff;
-            font-size: 0.7rem;
-            margin-top: 5px;
-        }
-        .no-results {
-            color: #444;
-            text-align: center;
-            margin-top: 50px;
-        }
-        .stats {
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: #888;
-        }
+        .timestamp { grid-column: span 2; text-align: right; color: #00d9ff; font-size: 0.7rem; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>🌀 SIX EYES DASHBOARD</h1>
-        <p style="color: #444;">Accessing the Infinity Void - Telemetry Viewer</p>
+        <p style="color: #444;">Infinity Void - Telemetry Viewer</p>
     </div>
 
     <div class="search-section">
-        <input type="text" id="op-input" placeholder="Enter Operation ID (e.g. GOJO777)">
+        <input type="text" id="op-input" placeholder="Enter Operation ID">
         <button onclick="searchLogs()">DECODE DATA</button>
     </div>
 
@@ -124,7 +39,7 @@
     </div>
 
     <div class="results-container" id="results-area">
-        <p class="no-results">Enter an ID to fetch encrypted telemetry data...</p>
+        <p style="text-align:center; color:#444;">Enter an ID to fetch encrypted telemetry data...</p>
     </div>
 
     <script>
@@ -137,10 +52,7 @@
             const resultsArea = document.getElementById('results-area');
             const deleteBtn = document.getElementById('delete-btn');
 
-            if (!opID) {
-                alert("Please enter an Operation ID!");
-                return;
-            }
+            if (!opID) return alert("Please enter an Operation ID!");
 
             resultsArea.innerHTML = `<p style="text-align:center; color:#00d9ff;">Searching database for "${opID.toUpperCase()}"...</p>`;
             deleteBtn.style.display = 'none';
@@ -149,70 +61,40 @@
                 const { data, error } = await _supabase
                     .from('telemetry')
                     .select('*')
-                    .eq('operation_id', opID.toLowerCase())
+                    .eq('operation_id', opID) // Bazadagi kabi qidiradi
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
                 if (data.length === 0) {
-                    resultsArea.innerHTML = `<p class="no-results">No telemetry found for ID: ${opID.toUpperCase()}</p>`;
+                    resultsArea.innerHTML = `<p style="text-align:center; color:#ff4444;">No telemetry found for ID: ${opID}</p>`;
                     return;
                 }
 
                 deleteBtn.style.display = 'inline-block';
-                resultsArea.innerHTML = `<div class="stats">TOTAL RECORDS FOUND: ${data.length}</div>`;
+                resultsArea.innerHTML = `<div style="margin-bottom:20px;">TOTAL RECORDS: ${data.length}</div>`;
 
                 data.forEach(log => {
-                    const card = `
+                    resultsArea.innerHTML += `
                         <div class="log-card">
-                            <div>
-                                <div class="label">IP Address</div>
-                                <div class="value">${log.ip}</div>
-                            </div>
-                            <div>
-                                <div class="label">Location</div>
-                                <div class="value">${log.location}</div>
-                            </div>
-                            <div>
-                                <div class="label">Provider</div>
-                                <div class="value">${log.provider}</div>
-                            </div>
-                            <div>
-                                <div class="label">User Agent</div>
-                                <div class="value" style="font-size:0.7rem;">${log.user_agent.substring(0, 50)}...</div>
-                            </div>
+                            <div><div class="label">IP Address</div><div class="value">${log.ip}</div></div>
+                            <div><div class="label">Location</div><div class="value">${log.location}</div></div>
+                            <div><div class="label">Provider</div><div class="value">${log.provider}</div></div>
+                            <div><div class="label">User Agent</div><div class="value" style="font-size:0.7rem;">${log.user_agent.substring(0, 50)}...</div></div>
                             <div class="timestamp">Captured at: ${new Date(log.created_at).toLocaleString()}</div>
-                        </div>
-                    `;
-                    resultsArea.innerHTML += card;
+                        </div>`;
                 });
-
             } catch (err) {
-                console.error("Search Error:", err);
                 resultsArea.innerHTML = `<p style="color:red; text-align:center;">Error accessing database.</p>`;
             }
         }
 
         async function clearLogs() {
             const opID = document.getElementById('op-input').value.trim();
-            if (!confirm(`Are you sure you want to PERMANENTLY DELETE all logs for ID: ${opID.toUpperCase()}?`)) return;
-
-            try {
-                const { error } = await _supabase
-                    .from('telemetry')
-                    .delete()
-                    .eq('operation_id', opID.toLowerCase());
-
-                if (error) throw error;
-
-                alert("Logs purged successfully.");
-                searchLogs(); // Ro'yxatni yangilash
-            } catch (err) {
-                alert("Purge failed. Check database permissions.");
-                console.error(err);
-            }
+            if (!confirm(`Permanently delete all logs for ${opID}?`)) return;
+            const { error } = await _supabase.from('telemetry').delete().eq('operation_id', opID);
+            if (!error) { alert("Purged!"); searchLogs(); }
         }
     </script>
 </body>
-</html>
 </html>
