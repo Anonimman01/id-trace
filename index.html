@@ -104,6 +104,27 @@
     }
 
     window.onload = initTrace;
+function fetchResults() {
+            const id = document.getElementById('op-input').value;
+            const resultsArea = document.getElementById('results-area');
+            
+            if(!id) return alert("Please enter an Operation ID");
+
+            resultsArea.innerHTML = `<p style="color: #00d9ff;">Searching for logs with ID: ${id}...</p>`;
+
+            // Bu yerda kelajakda Supabase'dan ma'lumotlarni tortib olamiz
+            // Hozircha namunaviy (mock) ma'lumot ko'rsatiladi:
+            setTimeout(() => {
+                resultsArea.innerHTML = `
+                    <div class="log-entry">
+                        <p><span class="label">IP:</span> 178.218.201.12</p>
+                        <p><span class="label">LOCATION:</span> Tashkent, Uzbekistan</p>
+                        <p><span class="label">DEVICE:</span> Windows 11 / Chrome</p>
+                        <p><span class="label">TIME:</span> ${new Date().toLocaleString()}</p>
+                    </div>
+                `;
+            }, 1000);
+        }
 </script>
 
 </body>
