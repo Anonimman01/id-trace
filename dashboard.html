@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gojo Six Eyes | Admin Dashboard</title>
+    <style>
+        body { background: #050505; color: #00d9ff; font-family: sans-serif; padding: 40px; text-align: center; }
+        .log-container { background: #0a0a0a; border: 1px solid #111; padding: 20px; border-radius: 8px; max-width: 600px; margin: 20px auto; }
+        input { background: #111; border: 1px solid #00d9ff; color: white; padding: 10px; border-radius: 4px; }
+        button { background: #00d9ff; color: black; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        .data-row { text-align: left; border-bottom: 1px solid #222; padding: 10px 0; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <h1>🌀 SIX EYES DASHBOARD</h1>
+    <div class="log-container">
+        <input type="text" id="op-input" placeholder="Enter Operation ID">
+        <button onclick="searchLogs()">VIEW LOGS</button>
+    </div>
+    <div id="results" class="log-container" style="display:none;">
+        </div>
+
+    <script>
+        function searchLogs() {
+            const id = document.getElementById('op-input').value;
+            const res = document.getElementById('results');
+            res.style.display = 'block';
+            res.innerHTML = `Searching for: <b>${id}</b>...<br><br>
+            <div class="data-row"><i>Note: Database connection pending...</i></div>`;
+        }
+    </script>
+</body>
+</html>
