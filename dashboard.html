@@ -3,135 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIX EYES | SUPREME OVERSEER</title>
+    <title>SIX EYES | GOD OVERSEER</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --neon: #00d9ff; --bg: #050505; --card: #0a0a0a; --java: #00ff41; --warn: #ffcc00; --danger: #ff4444; }
-        body { background: var(--bg); color: var(--neon); font-family: 'Courier New', monospace; margin: 0; padding: 20px; }
+        :root { --neon: #00d9ff; --bg: #020202; --panel: #0a0a0c; --java: #00ff41; --danger: #ff003c; }
+        body { background: var(--bg); color: var(--neon); font-family: 'Consolas', monospace; margin: 0; padding: 20px; overflow-x: hidden; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--neon); padding-bottom: 15px; margin-bottom: 20px; }
-        .grid-main { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        /* Glassmorphism Sidebar */
+        .sidebar { background: rgba(10, 10, 12, 0.9); border-right: 1px solid #1a1a1a; height: 100vh; position: fixed; left: 0; top: 0; width: 320px; padding: 20px; box-sizing: border-box; }
+        .main-content { margin-left: 340px; }
 
-        /* Sound Alert Animation */
-        .live-indicator { display: inline-block; width: 10px; height: 10px; background: var(--java); border-radius: 50%; box-shadow: 0 0 10px var(--java); animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        /* Terminal Effect */
+        #console-log { height: 300px; overflow-y: auto; background: #000; padding: 10px; border: 1px solid #111; font-size: 11px; color: var(--java); margin-top: 20px; }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #080808; padding-bottom: 3px; }
 
-        /* Terminal Style Sidebar */
-        .sidebar { background: #000; border: 1px solid #1a1a1a; padding: 15px; height: 80vh; overflow-y: auto; font-size: 11px; color: var(--java); }
-        .term-line { margin-bottom: 5px; border-left: 2px solid #222; padding-left: 8px; }
-
-        /* Stats Bar */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: var(--card); border: 1px solid #1a1a1a; padding: 15px; text-align: center; border-top: 3px solid var(--neon); }
-        .stat-card h2 { margin: 10px 0; font-size: 2rem; color: #fff; }
-
-        /* Enhanced Log Table */
-        .log-container { background: var(--card); border: 1px solid #1a1a1a; padding: 10px; }
-        .log-row { display: grid; grid-template-columns: 100px 150px 1fr 180px 120px; gap: 10px; padding: 12px; border-bottom: 1px solid #111; font-size: 12px; align-items: center; }
-        .log-row:hover { background: #0f0f0f; border-color: var(--neon); }
+        /* Advanced Data Cards */
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .target-card { background: var(--panel); border: 1px solid #1a1a1a; border-radius: 4px; padding: 15px; position: relative; transition: 0.3s; }
+        .target-card:hover { border-color: var(--neon); box-shadow: 0 0 20px rgba(0,217,255,0.1); transform: translateY(-3px); }
+        .target-card h3 { margin: 0 0 10px 0; font-size: 1rem; border-bottom: 1px solid #1a1a1a; padding-bottom: 10px; }
         
-        button { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 8px 15px; cursor: pointer; font-size: 10px; }
-        button:hover { background: var(--neon); color: #000; box-shadow: 0 0 15px var(--neon); }
-        .btn-analyze { border-color: var(--java); color: var(--java); }
+        .status-badge { position: absolute; top: 15px; right: 15px; font-size: 10px; padding: 2px 6px; border: 1px solid var(--java); color: var(--java); border-radius: 10px; }
+
+        .btn-action { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 5px 12px; font-size: 11px; cursor: pointer; text-transform: uppercase; }
+        .btn-action:hover { background: var(--neon); color: #000; }
+        
+        /* Stats Header */
+        .stats-header { display: flex; gap: 20px; margin-bottom: 30px; }
+        .stat-item { flex: 1; background: var(--panel); padding: 15px; border-left: 4px solid var(--neon); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div>
-            <h1 style="margin:0;">🌀 SIX EYES: SUPREME CONTROL v4.0</h1>
-            <span><span class="live-indicator"></span> SYSTEM STATUS: ONLINE | <span id="clock"></span></span>
+    <aside class="sidebar">
+        <h2 style="color: #fff; letter-spacing: 2px;">🌀 SIX EYES</h2>
+        <p style="font-size: 12px; color: #444;">COMMAND & CONTROL CENTER</p>
+        <div id="console-log">
+            <div class="log-entry">> Establishing secure tunnel...</div>
+            <div class="log-entry">> Six Eyes link ready.</div>
         </div>
-        <div class="controls">
-            <button onclick="toggleAudio()" id="audio-btn">🔊 AUDIO: ON</button>
-            <button onclick="syncData()" style="background: #fff; color: #000;">FORCE SYNC</button>
+        <div style="margin-top: 20px;">
+            <button class="btn-action" onclick="sync()" style="width: 100%;">FORCE RE-SCAN</button>
         </div>
-    </div>
+    </aside>
 
-    <div class="grid-main">
-        <aside class="sidebar" id="terminal-out">
-            <div class="term-line">> Initializing Void Connection...</div>
-        </aside>
+    <main class="main-content">
+        <div class="stats-header">
+            <div class="stat-item">ID ACTIVE: <span id="st-id" style="color: #fff;">NONE</span></div>
+            <div class="stat-item">TOTAL NODES: <span id="st-total" style="color: #fff;">0</span></div>
+            <div class="stat-item">LAST SYNC: <span id="st-time" style="color: #fff;">--:--:--</span></div>
+        </div>
 
-        <main>
-            <div class="stats-grid">
-                <div class="stat-card"><h2><span id="st-total">0</span></h2><p>TOTAL LOGS</p></div>
-                <div class="stat-card"><h2><span id="st-unique">0</span></h2><p>UNIQUE HOSTS</p></div>
-                <div class="stat-card"><h2><span id="st-latest">---</span></h2><p>LATEST IP</p></div>
-                <div class="stat-card"><h2><span id="st-security" style="color:var(--java)">SECURE</span></h2><p>FIREWALL</p></div>
+        <div style="margin-bottom: 20px; background: var(--panel); padding: 15px; display: flex; gap: 10px;">
+            <input type="text" id="target-search" placeholder="INPUT OPERATION_ID" style="background:#000; border:1px solid #222; color:var(--neon); padding:10px; flex:1;">
+            <button class="btn-action" onclick="executeSearch()">SEARCH</button>
+        </div>
+
+        <div class="data-grid" id="data-display">
             </div>
-
-            <div class="log-container">
-                <div class="log-row" style="background: #111; font-weight: bold; border: none;">
-                    <div>ID</div><div>IP ADDR</div><div>LOCATION</div><div>TIMESTAMP</div><div>ACTION</div>
-                </div>
-                <div id="log-list"></div>
-            </div>
-        </main>
-    </div>
-
-    <audio id="alert-sound" src="https://www.myinstants.com/media/sounds/notification-cyber.mp3"></audio>
+    </main>
 
     <script>
         const SUPABASE_URL = 'https://kisbfmcxvcwtxfwbgexb.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let audioEnabled = true;
-        let lastLogCount = 0;
-
-        function logTerm(msg) {
-            const out = document.getElementById('terminal-out');
-            out.innerHTML = `<div class="term-line">[${new Date().toLocaleTimeString()}] ${msg}</div>` + out.innerHTML;
+        function term(msg) {
+            const con = document.getElementById('console-log');
+            con.innerHTML = `<div class="log-entry">> [${new Date().toLocaleTimeString()}] ${msg}</div>` + con.innerHTML;
         }
 
-        async function syncData() {
-            logTerm("Syncing with Supabase Void...");
+        async function sync() {
+            term("Polling infinity void...");
             const { data, count, error } = await _supabase.from('telemetry').select('*', { count: 'exact' }).order('created_at', { ascending: false });
-            
-            if (data) {
-                // Audio alert check
-                if (count > lastLogCount && lastLogCount !== 0 && audioEnabled) {
-                    document.getElementById('alert-sound').play();
-                    logTerm("ALERT: NEW TARGET ACQUIRED!");
-                }
-                
-                lastLogCount = count;
+            if(data) {
                 document.getElementById('st-total').innerText = count;
-                document.getElementById('st-unique').innerText = [...new Set(data.map(i => i.ip))].length;
-                document.getElementById('st-latest').innerText = data[0]?.ip || "---";
-                
+                document.getElementById('st-time').innerText = new Date().toLocaleTimeString();
                 render(data);
-                logTerm(`Sync complete. Found ${count} records.`);
+                term("Sync successful.");
             }
         }
 
-        function render(items) {
-            const list = document.getElementById('log-list');
-            list.innerHTML = '';
-            items.forEach(log => {
-                list.innerHTML += `
-                    <div class="log-row">
-                        <div style="color:var(--neon)">${log.operation_id}</div>
-                        <div style="color:#fff">${log.ip}</div>
-                        <div>${log.location}</div>
-                        <div style="color:#555">${new Date(log.created_at).toLocaleString()}</div>
-                        <div>
-                            <button class="btn-analyze" onclick="window.open('https://www.abuseipdb.com/check/${log.ip}')">ANALYZE</button>
+        async function executeSearch() {
+            const id = document.getElementById('target-search').value.trim();
+            if(!id) return;
+            term(`Executing search for: ${id}`);
+            const { data } = await _supabase.from('telemetry').select('*').eq('operation_id', id);
+            if(data) {
+                document.getElementById('st-id').innerText = id;
+                render(data);
+                term(`Matches found: ${data.length}`);
+            }
+        }
+
+        function render(nodes) {
+            const display = document.getElementById('data-display');
+            display.innerHTML = '';
+            nodes.forEach(node => {
+                const card = `
+                    <div class="target-card">
+                        <span class="status-badge">SHRINE ACTIVE</span>
+                        <h3>HOST: ${node.ip}</h3>
+                        <p style="font-size: 12px; color: #666;">ID: <span style="color: var(--neon)">${node.operation_id}</span></p>
+                        <p style="font-size: 13px;">📍 ${node.location}</p>
+                        <p style="font-size: 11px; color: #444; overflow: hidden; white-space: nowrap;">OS: ${node.user_agent}</p>
+                        <div style="margin-top: 15px; display: flex; gap: 5px;">
+                            <button class="btn-action" onclick="window.open('https://www.abuseipdb.com/check/${node.ip}')">CHECK REPUTATION</button>
+                            <button class="btn-action" style="border-color: var(--danger); color: var(--danger);" onclick="deleteNode('${node.id}')">PURGE</button>
                         </div>
                     </div>`;
+                display.innerHTML += card;
             });
         }
 
-        function toggleAudio() {
-            audioEnabled = !audioEnabled;
-            document.getElementById('audio-btn').innerText = audioEnabled ? "🔊 AUDIO: ON" : "🔇 AUDIO: OFF";
+        async function deleteNode(uuid) {
+            if(!confirm("Purge node from database?")) return;
+            await _supabase.from('telemetry').delete().eq('id', uuid);
+            term("Node purged from reality.");
+            sync();
         }
 
-        function updateClock() { document.getElementById('clock').innerText = new Date().toISOString(); }
-        setInterval(updateClock, 100);
-        setInterval(syncData, 10000); // 10 sekundda yangilash
-        window.onload = syncData;
+        window.onload = sync;
+        setInterval(sync, 15000);
     </script>
 </body>
 </html>
