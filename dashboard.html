@@ -2,60 +2,76 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>SIX EYES | COMMAND CENTER v10.0</title>
+    <title>SIX EYES | COMMAND CENTER v11.0</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        :root { --neon: #00d9ff; --bg: #020202; --panel: #0a0a0c; --java: #00ff41; --danger: #ff003c; }
-        body { background: var(--bg); color: var(--neon); font-family: 'JetBrains Mono', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        :root { --neon: #00d9ff; --bg: #020202; --panel: #0a0a0c; --java: #00ff41; --danger: #ff003c; --warn: #ffcc00; }
+        body { background: var(--bg); color: var(--neon); font-family: 'JetBrains Mono', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; transition: 0.3s; }
         
-        .sidebar { width: 350px; background: var(--panel); border-right: 1px solid #1a1a1a; padding: 15px; display: flex; flex-direction: column; }
+        /* Stealth Mode Styles */
+        body.stealth-active { filter: brightness(0.6) grayscale(1); }
+        body.stealth-active .card:not(.is-threat) { opacity: 0.2; }
+        body.stealth-active .main { background: #000; }
+
+        .sidebar { width: 350px; background: var(--panel); border-right: 1px solid #1a1a1a; padding: 15px; display: flex; flex-direction: column; z-index: 10; }
         .main { flex: 1; padding: 20px; overflow-y: auto; background: radial-gradient(circle at center, #050505 0%, #000 100%); }
         
-        /* Map & Chart Section */
-        .visuals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; height: 300px; }
+        .visuals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; height: 250px; }
         #map { background: #000; border: 1px solid #222; border-radius: 4px; }
-        .chart-container { background: var(--panel); border: 1px solid #222; padding: 10px; }
+        .chart-container { background: var(--panel); border: 1px solid #222; padding: 10px; position: relative; }
 
-        /* IP Ban List */
-        .blacklist-area { background: #000; border: 1px solid var(--danger); padding: 10px; font-size: 11px; margin-top: 10px; height: 100px; overflow-y: auto; }
+        .blacklist-area { background: #000; border: 1px solid var(--danger); padding: 10px; font-size: 11px; margin-top: 10px; height: 80px; overflow-y: auto; color: var(--danger); }
         
         .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); }
-        .card.banned { border-left-color: var(--danger); opacity: 0.6; }
+        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); position: relative; transition: 0.3s; }
+        
+        /* Threat Classes */
+        .is-threat { border-left-color: var(--danger) !important; background: linear-gradient(90deg, #1a0000 0%, #0a0a0c 100%); animation: flash 1.5s infinite; }
+        @keyframes flash { from { border-left-color: var(--danger); } to { border-left-color: #ff6666; } }
 
-        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 8px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 11px; }
+        .badge { font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-right: 5px; font-weight: bold; }
+        .bg-danger { background: var(--danger); color: #fff; }
+        .bg-warn { background: var(--warn); color: #000; }
+        .bg-java { background: var(--java); color: #000; }
+
+        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 8px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 11px; font-family: inherit; }
         .btn-danger { border-color: var(--danger); color: var(--danger); }
-        .btn-whois { border-color: var(--java); color: var(--java); }
+        .btn-stealth { border-color: #444; color: #444; }
+        .btn-stealth.active { background: var(--neon); color: #000; border-color: var(--neon); }
+        
+        #terminal { font-size:9px; color:var(--java); margin-top:10px; height:100px; overflow-y:auto; background: #000; padding: 5px; border: 1px solid #111; }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
-        <h2 style="color:#fff; margin:0;">🌀 SIX EYES OPS</h2>
-        <p style="font-size: 10px; color:#444; margin-bottom:15px;">ADVANCED THREAT INTELLIGENCE</p>
+        <h2 style="color:#fff; margin:0;">🌀 SIX EYES v11</h2>
+        <p style="font-size: 10px; color:#444; margin-bottom:15px;">ACTIVE DEFENSE SYSTEM</p>
         
-        <div class="chart-container" style="height: 180px;">
+        <button id="stealthBtn" class="btn btn-stealth" onclick="toggleStealth()">STEALTH MODE: OFF</button>
+
+        <div class="chart-container" style="height: 150px; margin-top: 10px;">
             <canvas id="trafficChart"></canvas>
         </div>
 
         <label style="font-size: 10px; color: var(--danger); margin-top:15px;">🚫 PERMANENT BLACKLIST</label>
         <div id="blacklist" class="blacklist-area"></div>
 
-        <button class="btn" onclick="sync()">SYSTEM REFRESH</button>
+        <button class="btn" style="margin-top: 15px;" onclick="sync()">SYSTEM REFRESH</button>
         <button class="btn btn-danger" onclick="massPurge()">PURGE ALL</button>
-        <div id="terminal" style="font-size:9px; color:var(--java); margin-top:10px; height:100px; overflow:hidden;"></div>
+        <div id="terminal"></div>
     </aside>
 
     <main class="main">
         <div class="visuals-grid">
             <div id="map"></div>
             <div class="chart-container">
-                <label style="font-size: 10px;">THREAT PROXIMITY SCAN</label>
-                <div id="integrity-stat" style="font-size: 40px; font-weight: bold; text-align: center; margin-top: 50px;">100%</div>
-                <div style="text-align: center; font-size: 10px; color: var(--java);">SYSTEM INTEGRITY</div>
+                <label style="font-size: 10px;">INTEGRITY MONITOR</label>
+                <div id="integrity-stat" style="font-size: 50px; font-weight: bold; text-align: center; margin-top: 30px;">100%</div>
+                <div style="text-align: center; font-size: 10px; color: var(--java); letter-spacing: 2px;">SECURE</div>
             </div>
         </div>
 
@@ -67,23 +83,36 @@
         const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let map, trafficChart;
+        let map, trafficChart, isStealth = false;
         let BANNED_IPS = JSON.parse(localStorage.getItem('banned_ips')) || [];
 
-        // Xaritani sozlash
+        // 1. SQL & XSS Protection (Sanitization)
+        function sanitize(str) {
+            if(!str) return "";
+            return str.replace(/[<>'"/;()]/g, "⚠️");
+        }
+
         function initMap() {
             map = L.map('map', {zoomControl: false}).setView([20, 0], 2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         }
 
-        // Grafikni sozlash
         function initChart() {
             const ctx = document.getElementById('trafficChart').getContext('2d');
             trafficChart = new Chart(ctx, {
                 type: 'line',
-                data: { labels: [], datasets: [{ label: 'Traffic', data: [], borderColor: '#00d9ff', tension: 0.4 }] },
+                data: { labels: [], datasets: [{ data: [], borderColor: '#00d9ff', borderWidth: 1, pointRadius: 0, fill: true, backgroundColor: 'rgba(0, 217, 255, 0.1)' }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false }, x: { display: false } }, plugins: { legend: { display: false } } }
             });
+        }
+
+        function toggleStealth() {
+            isStealth = !isStealth;
+            document.body.classList.toggle('stealth-active');
+            const btn = document.getElementById('stealthBtn');
+            btn.innerText = isStealth ? "STEALTH MODE: ON" : "STEALTH MODE: OFF";
+            btn.classList.toggle('active');
+            log(isStealth ? "Stealth mode engaged." : "Stealth mode disengaged.");
         }
 
         async function sync() {
@@ -100,27 +129,23 @@
             const counts = {};
             data.forEach(n => counts[n.ip] = (counts[n.ip] || 0) + 1);
             for(let ip in counts) {
-                if(counts[ip] > 20 && !BANNED_IPS.includes(ip)) {
+                if(counts[ip] > 25 && !BANNED_IPS.includes(ip)) {
                     toggleBan(ip);
-                    log(`AUTO-BAN: ${ip} exceeded threshold!`);
+                    log(`SECURITY: Auto-banned flooder ${ip}`);
                 }
             }
         }
 
         function updateVisuals(data) {
-            // Grafikni yangilash
-            const last10 = data.slice(0, 10).reverse();
-            trafficChart.data.labels = last10.map(n => new Date(n.created_at).toLocaleTimeString());
-            trafficChart.data.datasets[0].data = last10.map((_, i) => i + Math.random() * 5);
+            const last20 = data.slice(0, 20).reverse();
+            trafficChart.data.labels = last20.map(n => "");
+            trafficChart.data.datasets[0].data = last20.map((_, i) => Math.floor(Math.random() * 10) + i);
             trafficChart.update();
 
-            // Xaritani tozalash va yangilash
-            map.eachLayer(l => { if(l instanceof L.CircleMarker) map.removeLayer(l); });
-            data.slice(0, 20).forEach(n => {
-                const lat = 20 + (Math.random() * 40 - 20); // Simulyatsiya: Haqiqiy koordinata bo'lmasa
-                const lng = 0 + (Math.random() * 100 - 50);
-                L.circleMarker([lat, lng], { radius: 5, color: BANNED_IPS.includes(n.ip) ? '#ff003c' : '#00ff41' }).addTo(map);
-            });
+            const threats = data.filter(n => BANNED_IPS.includes(n.ip) || n.location === 'HONEYPOT TRAP').length;
+            const integrity = data.length > 0 ? Math.round(((data.length - threats) / data.length) * 100) : 100;
+            document.getElementById('integrity-stat').innerText = integrity + "%";
+            document.getElementById('integrity-stat').style.color = integrity < 70 ? 'var(--danger)' : 'var(--java)';
         }
 
         function toggleBan(ip) {
@@ -134,8 +159,7 @@
         }
 
         function updateBlacklistUI() {
-            const container = document.getElementById('blacklist');
-            container.innerHTML = BANNED_IPS.map(ip => `<div>🚫 ${ip} <span style="cursor:pointer;color:#fff" onclick="toggleBan('${ip}')">[X]</span></div>`).join('');
+            document.getElementById('blacklist').innerHTML = BANNED_IPS.map(ip => `<div>🚫 ${ip} <span style="cursor:pointer;float:right" onclick="toggleBan('${ip}')">REVOKE</span></div>`).join('');
         }
 
         function render(nodes) {
@@ -143,23 +167,37 @@
             d.innerHTML = '';
             nodes.forEach(n => {
                 const isBanned = BANNED_IPS.includes(n.ip);
+                const isHoney = n.location === 'HONEYPOT TRAP';
+                const isSql = n.ip.includes('SELECT') || n.ip.includes('<') || n.user_agent.includes('sql');
+                const isFakeBrowser = n.user_agent.length < 25; // Fingerprinting simulation
+
+                const isThreat = isBanned || isHoney || isSql || isFakeBrowser;
+
                 d.innerHTML += `
-                    <div class="card ${isBanned ? 'banned' : ''}">
-                        <div style="font-size:10px;">${isBanned ? '🔴 BANNED HOST' : '🟢 ACTIVE'}</div>
-                        <div style="font-weight:bold; color:#fff; margin:5px 0;">${n.ip}</div>
-                        <div style="font-size:11px; color:#555;">📍 ${n.location}</div>
-                        <button class="btn btn-whois" onclick="window.open('https://abuseipdb.com/check/${n.ip}')">WHOIS LOOKUP</button>
-                        <button class="btn ${isBanned?'':'btn-danger'}" onclick="toggleBan('${n.ip}')">${isBanned?'UNBAN':'PERMANENT BAN'}</button>
+                    <div class="card ${isThreat ? 'is-threat' : ''}">
+                        <div style="margin-bottom: 5px;">
+                            ${isBanned ? '<span class="badge bg-danger">BANNED</span>' : ''}
+                            ${isHoney ? '<span class="badge bg-warn">HONEYPOT</span>' : ''}
+                            ${isSql ? '<span class="badge bg-danger">SQL_INJECT</span>' : ''}
+                            ${isFakeBrowser ? '<span class="badge bg-warn">FAKE_UA</span>' : ''}
+                        </div>
+                        <div style="font-weight:bold; color:#fff;">${sanitize(n.ip)}</div>
+                        <div style="font-size:11px; color:#555; margin-top:3px;">📍 ${sanitize(n.location)}</div>
+                        <div style="font-size:9px; color:#333; margin-top:5px; overflow:hidden; height:12px;">UA: ${sanitize(n.user_agent)}</div>
+                        <div style="display:flex; gap:5px; margin-top:10px;">
+                            <button class="btn" style="flex:1" onclick="window.open('https://abuseipdb.com/check/${n.ip}')">WHOIS</button>
+                            <button class="btn btn-danger" style="flex:1" onclick="toggleBan('${n.ip}')">${isBanned?'UNBAN':'BAN'}</button>
+                        </div>
                     </div>`;
             });
         }
 
         function log(msg) {
             const t = document.getElementById('terminal');
-            t.innerHTML = `<div>> ${msg}</div>` + t.innerHTML;
+            t.innerHTML = `<div>> [${new Date().toLocaleTimeString()}] ${msg}</div>` + t.innerHTML;
         }
 
-        window.onload = () => { initMap(); initChart(); sync(); setInterval(sync, 15000); };
+        window.onload = () => { initMap(); initChart(); sync(); setInterval(sync, 10000); };
     </script>
 </body>
 </html>
