@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>SIX EYES | TACTICAL v13.0</title>
+    <title>SIX EYES | TACTICAL v13.5</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -29,13 +29,17 @@
         .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
         .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); position: relative; transition: 0.3s; }
         .is-threat { border-left-color: var(--danger) !important; background: linear-gradient(90deg, #1a0000 0%, #0a0a0c 100%); }
+        .active-user { border-left: 3px solid var(--java) !important; box-shadow: 0 0 10px rgba(0, 255, 65, 0.1); }
 
         .badge { font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-right: 5px; font-weight: bold; }
         .bg-danger { background: var(--danger); color: #fff; }
         .bg-warn { background: var(--warn); color: #000; }
         .bg-success { background: var(--java); color: #000; }
 
-        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 8px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 11px; font-family: inherit; }
+        .behavior-tag { font-size: 8px; color: #888; border: 1px solid #333; padding: 1px 4px; border-radius: 2px; margin-top: 5px; display: inline-block; }
+
+        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 8px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 11px; font-family: inherit; transition: 0.2s; }
+        .btn:hover { background: rgba(0, 217, 255, 0.1); }
         .btn-export { border-color: var(--java); color: var(--java); }
         .btn-export:hover { background: var(--java); color: #000; }
         
@@ -50,8 +54,8 @@
 <body id="body-tag">
 
     <aside class="sidebar">
-        <h2 style="color:#fff; margin:0;">🌀 SIX EYES v13.0</h2>
-        <p style="font-size: 10px; color:#444; margin-bottom:15px;">COMMAND CENTER | DEEP ANALYSIS</p>
+        <h2 style="color:#fff; margin:0;">🌀 SIX EYES v13.5</h2>
+        <p style="font-size: 10px; color:#444; margin-bottom:15px;">TACTICAL INTELLIGENCE | ELITE MODE</p>
         
         <button id="stealthBtn" class="btn" onclick="toggleStealth()">STEALTH MODE: OFF</button>
         <button class="btn btn-export" onclick="exportToCSV()">📂 EXPORT LOGS (CSV)</button>
@@ -86,7 +90,6 @@
     </main>
 
     <script>
-        // Supabase Init
         const _supabase = window.supabase.createClient('https://kisbfmcxvcwtxfwbgexb.supabase.co', 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz');
 
         let map, trafficChart, isStealth = false;
@@ -95,7 +98,16 @@
 
         function sanitize(str) { return str ? str.replace(/[<>'"/;()]/g, "⚠️") : ""; }
 
-        // 🕵️‍♂️ GPU Integrity Check: Detects virtual environments
+        // 🧬 Canvas Fingerprinting: Noyob raqamli ID yaratish
+        function getFingerprint() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = "top";
+            ctx.font = "12px Arial";
+            ctx.fillText("SIX-EYES-v13.5", 2, 2);
+            return btoa(canvas.toDataURL()).substring(150, 160).toUpperCase();
+        }
+
         function getGPUInfo() {
             const canvas = document.createElement('canvas');
             const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -146,18 +158,16 @@
             }
         }
 
-        // 🛡️ Self-Healing: Automatic threat response
         function selfHeal(data) {
             const recentLogs = data.slice(0, 10);
             const botCount = recentLogs.filter(n => n.user_agent.toLowerCase().includes('bot')).length;
             const shieldStatus = document.getElementById('shield-status');
             const body = document.getElementById('body-tag');
 
-            if (botCount > 6) { // High intensity bot traffic
+            if (botCount > 6) {
                 body.classList.add('shield-active');
                 shieldStatus.innerText = "🚨 SHIELD MODE: HIGH THREAT";
                 shieldStatus.style.color = "var(--danger)";
-                log("Self-Healing: Shield Mode Activated due to bot flood.");
             } else {
                 body.classList.remove('shield-active');
                 shieldStatus.innerText = "✅ SYSTEM STABLE";
@@ -169,7 +179,7 @@
             const botCount = data.filter(n => n.user_agent.toLowerCase().includes('bot') || n.user_agent.length < 25).length;
             document.getElementById('stat-bots').innerText = botCount;
             document.getElementById('stat-humans').innerText = data.length - botCount;
-            const integrity = Math.round(((data.length - botCount) / data.length) * 100);
+            const integrity = data.length > 0 ? Math.round(((data.length - botCount) / data.length) * 100) : 100;
             document.getElementById('integrity-stat').innerText = integrity + "%";
             
             trafficChart.data.labels = data.slice(0,10).map(n => "");
@@ -187,6 +197,10 @@
         function render(nodes) {
             const d = document.getElementById('display');
             const gpu = getGPUInfo();
+            const fingerprint = getFingerprint();
+            const urlParams = new URLSearchParams(window.location.search);
+            const refID = urlParams.get('id') || 'DIRECT';
+
             d.innerHTML = '';
             
             nodes.forEach(n => {
@@ -195,31 +209,36 @@
                 const isBot = ua.includes('bot') || ua.includes('crawler') || ua.length < 25;
                 const isThreat = isBanned || isBot;
 
-                let device = "Unknown Node";
+                let device = "Desktop Node";
                 if(ua.includes('windows')) device = "Windows Workstation";
                 if(ua.includes('android')) device = "Mobile Android";
                 if(ua.includes('iphone')) device = "Mobile iPhone";
-                if(isBot) device = "Automated Crawler/Bot";
+                if(isBot) device = "Automated Bot";
 
                 d.innerHTML += `
-                    <div class="card ${isThreat ? 'is-threat' : ''}">
-                        <div style="margin-bottom: 5px;">
-                            ${isBanned ? '<span class="badge bg-danger">BANNED</span>' : ''}
-                            ${isBot ? '<span class="badge bg-warn">BOT DETECTED</span>' : '<span class="badge bg-success">HUMAN</span>'}
+                    <div class="card ${isThreat ? 'is-threat' : 'active-user'}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                            <div>
+                                ${isBanned ? '<span class="badge bg-danger">BANNED</span>' : ''}
+                                ${isBot ? '<span class="badge bg-warn">BOT</span>' : '<span class="badge bg-success">HUMAN</span>'}
+                            </div>
+                            <span style="font-size:8px; color:#555">UID: ${fingerprint}</span>
                         </div>
-                        <div style="font-weight:bold; font-size:15px; color:#fff;">${sanitize(n.ip)}</div>
+                        <div style="font-weight:bold; font-size:16px; color:#fff;">${sanitize(n.ip)}</div>
                         <div style="font-size:11px; color:var(--neon); margin: 3px 0;">📍 ${sanitize(n.location)}</div>
                         
+                        <div class="behavior-tag">CAMPAIGN: ${refID}</div>
+
                         <div class="investigator-panel">
-                            <strong>DEEP ANALYSIS REPORT:</strong><br>
+                            <strong>ELITE ANALYSIS:</strong><br>
                             Identity: ${device}<br>
-                            GPU Check: <span style="color:#aaa">${gpu.vendor.substring(0,30)}</span><br>
-                            Integrity: <span class="${isBot ? 'risk-high' : 'risk-low'}">${isBot ? '⚠️ FAKE BROWSER' : '✅ VERIFIED'}</span><br>
+                            GPU Check: <span style="color:#aaa; font-size:9px;">${gpu.vendor.substring(0,25)}...</span><br>
+                            Integrity: <span class="${isBot ? 'risk-high' : 'risk-low'}">${isBot ? '⚠️ SUSPICIOUS' : '✅ VERIFIED'}</span><br>
                             Threat Score: <span class="${isThreat ? 'risk-high' : 'risk-low'}">${isThreat ? 'CRITICAL' : 'SECURE'}</span>
                         </div>
 
                         <div style="display:flex; gap:5px; margin-top:10px;">
-                            <button class="btn" style="flex:1" onclick="window.open('https://abuseipdb.com/check/${n.ip}')">WHOIS</button>
+                            <button class="btn" style="flex:1" onclick="window.open('https://www.shodan.io/host/${n.ip}')">SHODAN</button>
                             <button class="btn" style="flex:1; border-color:var(--danger); color:var(--danger)" onclick="toggleBan('${n.ip}')">${isBanned?'UNBAN':'BAN'}</button>
                         </div>
                     </div>`;
@@ -233,7 +252,7 @@
                 const blob = new Blob([head + rows], {type: 'text/csv'});
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url; a.download = `sixeyes_threat_report.csv`;
+                a.href = url; a.download = `sixeyes_v13_report.csv`;
                 a.click();
             });
         }
@@ -252,4 +271,5 @@
         window.onload = () => { initMap(); initChart(); sync(); setInterval(sync, 15000); };
     </script>
 </body>
+</html>
 </html>
