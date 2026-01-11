@@ -2,47 +2,61 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIX EYES | AUTO-DEFENDER v9.0</title>
+    <title>SIX EYES | COMMAND CENTER v10.0</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root { --neon: #00d9ff; --bg: #020202; --panel: #0a0a0c; --java: #00ff41; --danger: #ff003c; }
         body { background: var(--bg); color: var(--neon); font-family: 'JetBrains Mono', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        .sidebar { width: 320px; background: var(--panel); border-right: 1px solid #1a1a1a; padding: 20px; display: flex; flex-direction: column; }
-        #terminal { flex: 1; background: #000; padding: 10px; font-size: 11px; color: var(--java); overflow-y: auto; border-left: 2px solid var(--java); margin: 15px 0; }
+        .sidebar { width: 350px; background: var(--panel); border-right: 1px solid #1a1a1a; padding: 15px; display: flex; flex-direction: column; }
+        .main { flex: 1; padding: 20px; overflow-y: auto; background: radial-gradient(circle at center, #050505 0%, #000 100%); }
         
-        .main { flex: 1; padding: 25px; overflow-y: auto; }
-        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--panel); padding: 20px; border: 1px solid #1a1a1a; text-align: center; }
+        /* Map & Chart Section */
+        .visuals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; height: 300px; }
+        #map { background: #000; border: 1px solid #222; border-radius: 4px; }
+        .chart-container { background: var(--panel); border: 1px solid #222; padding: 10px; }
+
+        /* IP Ban List */
+        .blacklist-area { background: #000; border: 1px solid var(--danger); padding: 10px; font-size: 11px; margin-top: 10px; height: 100px; overflow-y: auto; }
         
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
-        .card { background: #0d0d0f; border: 1px solid #1a1a1a; padding: 15px; position: relative; }
-        .card.is-bot { border-color: var(--danger); }
-        
-        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 10px; cursor: pointer; width: 100%; margin-top: 10px; font-family: inherit; }
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); }
+        .card.banned { border-left-color: var(--danger); opacity: 0.6; }
+
+        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 8px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 11px; }
         .btn-danger { border-color: var(--danger); color: var(--danger); }
-        .status-tag { font-size: 9px; padding: 2px 5px; border-radius: 3px; background: #222; margin-bottom: 5px; display: inline-block; }
+        .btn-whois { border-color: var(--java); color: var(--java); }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
-        <h2 style="color: #fff; margin: 0;">🌀 SIX EYES</h2>
-        <div id="defense-status" style="font-size: 10px; color: var(--java);">AUTO-DEFENSE: ACTIVE</div>
+        <h2 style="color:#fff; margin:0;">🌀 SIX EYES OPS</h2>
+        <p style="font-size: 10px; color:#444; margin-bottom:15px;">ADVANCED THREAT INTELLIGENCE</p>
         
-        <div id="terminal"></div>
+        <div class="chart-container" style="height: 180px;">
+            <canvas id="trafficChart"></canvas>
+        </div>
 
-        <button class="btn" onclick="sync()">DATABASE REFRESH</button>
-        <button class="btn btn-danger" onclick="massPurge()">CLEAR ALL RECORDS</button>
+        <label style="font-size: 10px; color: var(--danger); margin-top:15px;">🚫 PERMANENT BLACKLIST</label>
+        <div id="blacklist" class="blacklist-area"></div>
+
+        <button class="btn" onclick="sync()">SYSTEM REFRESH</button>
+        <button class="btn btn-danger" onclick="massPurge()">PURGE ALL</button>
+        <div id="terminal" style="font-size:9px; color:var(--java); margin-top:10px; height:100px; overflow:hidden;"></div>
     </aside>
 
     <main class="main">
-        <div class="stats">
-            <div class="stat-card"><label style="font-size: 10px; color: #444;">DATABASE LOAD</label><div id="s-total" style="font-size: 24px;">0</div></div>
-            <div class="stat-card"><label style="font-size: 10px; color: #444;">AFK ACTIONS</label><div id="s-actions" style="font-size: 24px; color: var(--java);">0</div></div>
-            <div class="stat-card"><label style="font-size: 10px; color: #444;">INTEGRITY</label><div id="s-integrity" style="font-size: 24px;">100%</div></div>
+        <div class="visuals-grid">
+            <div id="map"></div>
+            <div class="chart-container">
+                <label style="font-size: 10px;">THREAT PROXIMITY SCAN</label>
+                <div id="integrity-stat" style="font-size: 40px; font-weight: bold; text-align: center; margin-top: 50px;">100%</div>
+                <div style="text-align: center; font-size: 10px; color: var(--java);">SYSTEM INTEGRITY</div>
+            </div>
         </div>
 
         <div class="data-grid" id="display"></div>
@@ -53,84 +67,99 @@
         const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Oq ro'yxat (Sizning IP-laringiz)
-        const WHITELIST = ['91.211.134.16', '94.230.231.77', '2a0c:4d00:2:8::2'];
-        let afkActionCount = 0;
+        let map, trafficChart;
+        let BANNED_IPS = JSON.parse(localStorage.getItem('banned_ips')) || [];
 
-        function log(msg, type = 'info') {
-            const t = document.getElementById('terminal');
-            const color = type === 'danger' ? 'var(--danger)' : (type === 'warn' ? '#ffcc00' : 'var(--java)');
-            t.innerHTML += `<div style="color:${color}">> [${new Date().toLocaleTimeString()}] ${msg}</div>`;
-            t.scrollTop = t.scrollHeight;
+        // Xaritani sozlash
+        function initMap() {
+            map = L.map('map', {zoomControl: false}).setView([20, 0], 2);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+        }
+
+        // Grafikni sozlash
+        function initChart() {
+            const ctx = document.getElementById('trafficChart').getContext('2d');
+            trafficChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Traffic', data: [], borderColor: '#00d9ff', tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false }, x: { display: false } }, plugins: { legend: { display: false } } }
+            });
         }
 
         async function sync() {
-            const { data, error } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false });
-
-            if (error) {
-                log("Ulanishda xato: " + error.message, 'danger');
-                return;
+            const { data } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false });
+            if (data) {
+                updateBlacklistUI();
+                processAutoBan(data);
+                updateVisuals(data);
+                render(data);
             }
-
-            // AFK DEFENDER LOGIC
-            const ipCounts = {};
-            data.forEach(n => ipCounts[n.ip] = (ipCounts[n.ip] || 0) + 1);
-
-            for (const ip in ipCounts) {
-                // Agar bir IP dan 10 tadan ko'p so'rov bo'lsa va u WHITELIST da bo'lmasa
-                if (ipCounts[ip] > 10 && !WHITELIST.includes(ip)) {
-                    log(`AFK PROTECTION: Auto-purging Spammer IP ${ip}`, 'warn');
-                    await _supabase.from('telemetry').delete().eq('ip', ip);
-                    afkActionCount++;
-                    document.getElementById('s-actions').innerText = afkActionCount;
-                    return sync(); // Tozalagandan keyin qayta yangilash
-                }
-            }
-
-            updateStats(data);
-            render(data);
         }
 
-        function updateStats(data) {
-            const threats = data.filter(n => !WHITELIST.includes(n.ip)).length;
-            const integrity = data.length > 0 ? Math.round(((data.length - threats) / data.length) * 100) : 100;
-            
-            document.getElementById('s-total').innerText = data.length;
-            document.getElementById('s-integrity').innerText = integrity + "%";
-            document.getElementById('s-integrity').style.color = integrity < 70 ? 'var(--danger)' : 'var(--java)';
+        function processAutoBan(data) {
+            const counts = {};
+            data.forEach(n => counts[n.ip] = (counts[n.ip] || 0) + 1);
+            for(let ip in counts) {
+                if(counts[ip] > 20 && !BANNED_IPS.includes(ip)) {
+                    toggleBan(ip);
+                    log(`AUTO-BAN: ${ip} exceeded threshold!`);
+                }
+            }
+        }
+
+        function updateVisuals(data) {
+            // Grafikni yangilash
+            const last10 = data.slice(0, 10).reverse();
+            trafficChart.data.labels = last10.map(n => new Date(n.created_at).toLocaleTimeString());
+            trafficChart.data.datasets[0].data = last10.map((_, i) => i + Math.random() * 5);
+            trafficChart.update();
+
+            // Xaritani tozalash va yangilash
+            map.eachLayer(l => { if(l instanceof L.CircleMarker) map.removeLayer(l); });
+            data.slice(0, 20).forEach(n => {
+                const lat = 20 + (Math.random() * 40 - 20); // Simulyatsiya: Haqiqiy koordinata bo'lmasa
+                const lng = 0 + (Math.random() * 100 - 50);
+                L.circleMarker([lat, lng], { radius: 5, color: BANNED_IPS.includes(n.ip) ? '#ff003c' : '#00ff41' }).addTo(map);
+            });
+        }
+
+        function toggleBan(ip) {
+            if(BANNED_IPS.includes(ip)) {
+                BANNED_IPS = BANNED_IPS.filter(i => i !== ip);
+            } else {
+                BANNED_IPS.push(ip);
+            }
+            localStorage.setItem('banned_ips', JSON.stringify(BANNED_IPS));
+            sync();
+        }
+
+        function updateBlacklistUI() {
+            const container = document.getElementById('blacklist');
+            container.innerHTML = BANNED_IPS.map(ip => `<div>🚫 ${ip} <span style="cursor:pointer;color:#fff" onclick="toggleBan('${ip}')">[X]</span></div>`).join('');
         }
 
         function render(nodes) {
             const d = document.getElementById('display');
             d.innerHTML = '';
             nodes.forEach(n => {
-                const isWhite = WHITELIST.includes(n.ip);
+                const isBanned = BANNED_IPS.includes(n.ip);
                 d.innerHTML += `
-                    <div class="card ${!isWhite ? 'is-bot' : ''}">
-                        <div class="status-tag">${isWhite ? 'AUTHORIZED' : 'UNIDENTIFIED'}</div>
-                        <div style="font-weight:bold; font-size:16px;">${n.ip}</div>
-                        <div style="font-size:11px; color:#555; margin: 5px 0;">📍 ${n.location}</div>
-                        <div style="font-size:10px; color:var(--neon);">🕒 ${new Date(n.created_at).toLocaleString()}</div>
-                        <button class="btn btn-danger" style="font-size:9px; padding:5px; margin-top:10px;" onclick="purgeSingle('${n.id}')">PURGE</button>
+                    <div class="card ${isBanned ? 'banned' : ''}">
+                        <div style="font-size:10px;">${isBanned ? '🔴 BANNED HOST' : '🟢 ACTIVE'}</div>
+                        <div style="font-weight:bold; color:#fff; margin:5px 0;">${n.ip}</div>
+                        <div style="font-size:11px; color:#555;">📍 ${n.location}</div>
+                        <button class="btn btn-whois" onclick="window.open('https://abuseipdb.com/check/${n.ip}')">WHOIS LOOKUP</button>
+                        <button class="btn ${isBanned?'':'btn-danger'}" onclick="toggleBan('${n.ip}')">${isBanned?'UNBAN':'PERMANENT BAN'}</button>
                     </div>`;
             });
         }
 
-        async function purgeSingle(id) {
-            await _supabase.from('telemetry').delete().eq('id', id);
-            sync();
+        function log(msg) {
+            const t = document.getElementById('terminal');
+            t.innerHTML = `<div>> ${msg}</div>` + t.innerHTML;
         }
 
-        async function massPurge() {
-            if(!confirm("Barcha ma'lumotlarni tozalashga rozimisiz?")) return;
-            await _supabase.from('telemetry').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            log("Database fully purged.", 'warn');
-            sync();
-        }
-
-        // 15 soniyada avtomat yangilash va AFK himoya
-        setInterval(sync, 15000);
-        window.onload = () => { log("Six Eyes AFK Defense Online."); sync(); };
+        window.onload = () => { initMap(); initChart(); sync(); setInterval(sync, 15000); };
     </script>
 </body>
 </html>
