@@ -56,7 +56,13 @@
     </main>
 
     <script>
-        const _supabase = window.supabase.createClient('https://kisbfmcxvcwtxfwbgexb.supabase.co', 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz');
+        const _supabase = window.supabase.createClient(
+    'https://kisbfmcxvcwtxfwbgexb.supabase.co', 
+    'sb_publishable_ZpaoCxnW8rncY0JVm9S5VA_fn3yL61S'
+);
+
+// Tizim holatini tekshirish uchun log qo'shamiz
+console.log("Supabase Client initialized with key ending in ...61S");
         let map, globalBlacklist = [];
 
         function sanitize(str) { return str ? str.replace(/[<>'"/;()]/g, "⚠️") : "N/A"; }
