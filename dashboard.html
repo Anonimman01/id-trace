@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>SIX EYES | TACTICAL v13.5</title>
+    <title>SIX EYES | TACTICAL v14.0 PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -13,9 +13,8 @@
         
         /* Stealth & Shield Modes */
         body.stealth-active { filter: brightness(0.6) grayscale(1); }
-        body.stealth-active .card:not(.is-threat) { opacity: 0.2; }
         body.shield-active { border: 4px solid var(--danger); box-sizing: border-box; }
-        body.shield-active::before { content: "🛡️ SHIELD MODE: ACTIVE"; position: fixed; top: 10px; right: 50%; transform: translateX(50%); z-index: 1000; background: var(--danger); color: white; padding: 5px 20px; font-weight: bold; font-size: 12px; box-shadow: 0 0 20px rgba(255,0,60,0.5); }
+        body.shield-active::before { content: "🛡️ SHIELD MODE: ACTIVE"; position: fixed; top: 10px; right: 50%; transform: translateX(50%); z-index: 1000; background: var(--danger); color: white; padding: 5px 20px; font-weight: bold; font-size: 12px; }
 
         .sidebar { width: 350px; background: var(--panel); border-right: 1px solid #1a1a1a; padding: 15px; display: flex; flex-direction: column; z-index: 10; }
         .main { flex: 1; padding: 20px; overflow-y: auto; background: radial-gradient(circle at center, #050505 0%, #000 100%); }
@@ -26,10 +25,10 @@
 
         .blacklist-area { background: #000; border: 1px solid var(--danger); padding: 10px; font-size: 11px; margin-top: 10px; height: 80px; overflow-y: auto; color: var(--danger); }
         
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
-        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); position: relative; transition: 0.3s; }
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 15px; }
+        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); transition: 0.3s; }
         .is-threat { border-left-color: var(--danger) !important; background: linear-gradient(90deg, #1a0000 0%, #0a0a0c 100%); }
-        .active-user { border-left: 3px solid var(--java) !important; box-shadow: 0 0 10px rgba(0, 255, 65, 0.1); }
+        .active-user { border-left: 3px solid var(--java) !important; }
 
         .badge { font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-right: 5px; font-weight: bold; }
         .bg-danger { background: var(--danger); color: #fff; }
@@ -38,35 +37,33 @@
 
         .behavior-tag { font-size: 8px; color: #888; border: 1px solid #333; padding: 1px 4px; border-radius: 2px; margin-top: 5px; display: inline-block; }
 
-        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 8px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 11px; font-family: inherit; transition: 0.2s; }
+        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 6px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 10px; font-family: inherit; transition: 0.2s; text-transform: uppercase; }
         .btn:hover { background: rgba(0, 217, 255, 0.1); }
-        .btn-export { border-color: var(--java); color: var(--java); }
-        .btn-export:hover { background: var(--java); color: #000; }
         
-        #terminal { font-size:9px; color:var(--java); margin-top:10px; height:100px; overflow-y:auto; background: #000; padding: 5px; border: 1px solid #111; }
+        #terminal { font-size:9px; color:var(--java); margin-top:10px; height:80px; overflow-y:auto; background: #000; padding: 5px; border: 1px solid #111; }
         
-        .investigator-panel { font-size: 10px; color: #666; background: #000; padding: 8px; margin-top: 8px; border: 1px dashed #333; line-height: 1.5; }
-        .risk-high { color: var(--danger); animation: blink 1s infinite; font-weight: bold; }
+        .investigator-panel { font-size: 10px; color: #666; background: #050505; padding: 10px; margin-top: 10px; border: 1px dashed #222; }
+        .risk-high { color: var(--danger); font-weight: bold; }
         .risk-low { color: var(--java); }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        .osint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; }
     </style>
 </head>
 <body id="body-tag">
 
     <aside class="sidebar">
-        <h2 style="color:#fff; margin:0;">🌀 SIX EYES v13.5</h2>
-        <p style="font-size: 10px; color:#444; margin-bottom:15px;">TACTICAL INTELLIGENCE | ELITE MODE</p>
+        <h2 style="color:#fff; margin:0;">🌀 SIX EYES v14.0</h2>
+        <p style="font-size: 10px; color:#444; margin-bottom:15px;">OSINT & THREAT INTELLIGENCE</p>
         
         <button id="stealthBtn" class="btn" onclick="toggleStealth()">STEALTH MODE: OFF</button>
-        <button class="btn btn-export" onclick="exportToCSV()">📂 EXPORT LOGS (CSV)</button>
+        <button class="btn" style="border-color:var(--java); color:var(--java);" onclick="exportToCSV()">📂 EXPORT DATA (CSV)</button>
 
         <div id="blacklist" class="blacklist-area"></div>
 
-        <div class="chart-container" style="height: 120px; margin-top: 15px; padding: 5px;">
+        <div class="chart-container" style="height: 100px; margin-top: 15px;">
              <canvas id="trafficChart"></canvas>
         </div>
 
-        <button class="btn" style="margin-top: 15px;" onclick="sync()">SYSTEM REFRESH</button>
+        <button class="btn" style="margin-top: 15px;" onclick="sync()">FORCE SYSTEM REFRESH</button>
         <div id="terminal"></div>
     </aside>
 
@@ -77,11 +74,11 @@
                 <div style="text-align: center;">
                     <label style="font-size: 10px; color: #555;">SYSTEM INTEGRITY</label>
                     <div id="integrity-stat" style="font-size: 45px; font-weight: bold;">100%</div>
-                    <div id="shield-status" style="font-size: 10px; color: var(--java); margin-top: 5px;">✅ SYSTEM STABLE</div>
+                    <div id="shield-status" style="font-size: 10px; color: var(--java);">✅ SYSTEM SECURE</div>
                 </div>
                 <div style="font-size: 11px; border-top: 1px solid #222; pt: 10px; margin-top:10px;">
-                    <div style="display:flex; justify-content:space-between;"><span>BOTS:</span> <span id="stat-bots" style="color:var(--danger)">0</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>HUMANS:</span> <span id="stat-humans" style="color:var(--java)">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>THREATS:</span> <span id="stat-bots" style="color:var(--danger)">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>VALIDATED:</span> <span id="stat-humans" style="color:var(--java)">0</span></div>
                 </div>
             </div>
         </div>
@@ -96,27 +93,7 @@
         let BANNED_IPS = JSON.parse(localStorage.getItem('banned_ips')) || [];
         let markers = [];
 
-        function sanitize(str) { return str ? str.replace(/[<>'"/;()]/g, "⚠️") : ""; }
-
-        // 🧬 Canvas Fingerprinting: Noyob raqamli ID yaratish
-        function getFingerprint() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.textBaseline = "top";
-            ctx.font = "12px Arial";
-            ctx.fillText("SIX-EYES-v13.5", 2, 2);
-            return btoa(canvas.toDataURL()).substring(150, 160).toUpperCase();
-        }
-
-        function getGPUInfo() {
-            const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-            if (!gl) return { isBot: true, vendor: "No WebGL" };
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "Unknown";
-            const isBot = /SwiftShader|llvmpipe|VirtualBox|VMware|Microsoft Basic Render/i.test(renderer);
-            return { isBot, vendor: renderer };
-        }
+        function sanitize(str) { return str ? str.replace(/[<>'"/;()]/g, "⚠️") : "N/A"; }
 
         function initMap() {
             map = L.map('map', {zoomControl: false}).setView([20, 0], 2);
@@ -132,51 +109,17 @@
             });
         }
 
-        function updateMap(data) {
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-            data.slice(0, 40).forEach(n => {
-                let lat = 20, lng = 0;
-                if(n.location.includes("Ireland")) { lat = 53.3; lng = -6.2; }
-                else if(n.location.includes("United States")) { lat = 37.0; lng = -95.7; }
-                else if(n.location.includes("Uzbekistan")) { lat = 41.3; lng = 69.2; }
-                else if(n.location.includes("Germany")) { lat = 51.1; lng = 10.4; }
-                const m = L.circleMarker([lat + (Math.random()*2), lng + (Math.random()*2)], {
-                    radius: 4, color: n.user_agent.includes('bot') ? '#ff003c' : '#00ff41', fillOpacity: 0.6
-                }).addTo(map);
-                markers.push(m);
-            });
-        }
-
         async function sync() {
             const { data } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false });
             if (data) {
                 render(data);
-                updateMap(data);
                 updateStats(data);
-                selfHeal(data);
-            }
-        }
-
-        function selfHeal(data) {
-            const recentLogs = data.slice(0, 10);
-            const botCount = recentLogs.filter(n => n.user_agent.toLowerCase().includes('bot')).length;
-            const shieldStatus = document.getElementById('shield-status');
-            const body = document.getElementById('body-tag');
-
-            if (botCount > 6) {
-                body.classList.add('shield-active');
-                shieldStatus.innerText = "🚨 SHIELD MODE: HIGH THREAT";
-                shieldStatus.style.color = "var(--danger)";
-            } else {
-                body.classList.remove('shield-active');
-                shieldStatus.innerText = "✅ SYSTEM STABLE";
-                shieldStatus.style.color = "var(--java)";
+                log("Intelligence synced with central database.");
             }
         }
 
         function updateStats(data) {
-            const botCount = data.filter(n => n.user_agent.toLowerCase().includes('bot') || n.user_agent.length < 25).length;
+            const botCount = data.filter(n => n.is_bot || n.user_agent.toLowerCase().includes('bot')).length;
             document.getElementById('stat-bots').innerText = botCount;
             document.getElementById('stat-humans').innerText = data.length - botCount;
             const integrity = data.length > 0 ? Math.round(((data.length - botCount) / data.length) * 100) : 100;
@@ -196,63 +139,56 @@
 
         function render(nodes) {
             const d = document.getElementById('display');
-            const gpu = getGPUInfo();
-            const fingerprint = getFingerprint();
-            const urlParams = new URLSearchParams(window.location.search);
-            const refID = urlParams.get('id') || 'DIRECT';
-
             d.innerHTML = '';
             
             nodes.forEach(n => {
                 const isBanned = BANNED_IPS.includes(n.ip);
-                const ua = n.user_agent.toLowerCase();
-                const isBot = ua.includes('bot') || ua.includes('crawler') || ua.length < 25;
+                const isBot = n.is_bot || (n.user_agent && n.user_agent.toLowerCase().includes('bot'));
                 const isThreat = isBanned || isBot;
-
-                let device = "Desktop Node";
-                if(ua.includes('windows')) device = "Windows Workstation";
-                if(ua.includes('android')) device = "Mobile Android";
-                if(ua.includes('iphone')) device = "Mobile iPhone";
-                if(isBot) device = "Automated Bot";
 
                 d.innerHTML += `
                     <div class="card ${isThreat ? 'is-threat' : 'active-user'}">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
                             <div>
                                 ${isBanned ? '<span class="badge bg-danger">BANNED</span>' : ''}
-                                ${isBot ? '<span class="badge bg-warn">BOT</span>' : '<span class="badge bg-success">HUMAN</span>'}
+                                ${isBot ? '<span class="badge bg-warn">MALICIOUS/BOT</span>' : '<span class="badge bg-success">VERIFIED</span>'}
                             </div>
-                            <span style="font-size:8px; color:#555">UID: ${fingerprint}</span>
+                            <span style="font-size:8px; color:#555">UID: ${n.uid || 'UNKNOWN'}</span>
                         </div>
-                        <div style="font-weight:bold; font-size:16px; color:#fff;">${sanitize(n.ip)}</div>
+
+                        <div style="font-weight:bold; font-size:18px; color:#fff;">${sanitize(n.ip)}</div>
                         <div style="font-size:11px; color:var(--neon); margin: 3px 0;">📍 ${sanitize(n.location)}</div>
-                        
-                        <div class="behavior-tag">CAMPAIGN: ${refID}</div>
+                        <div class="behavior-tag">CAMPAIGN: ${n.operation_id || 'DIRECT'}</div>
 
                         <div class="investigator-panel">
-                            <strong>ELITE ANALYSIS:</strong><br>
-                            Identity: ${device}<br>
-                            GPU Check: <span style="color:#aaa; font-size:9px;">${gpu.vendor.substring(0,25)}...</span><br>
-                            Integrity: <span class="${isBot ? 'risk-high' : 'risk-low'}">${isBot ? '⚠️ SUSPICIOUS' : '✅ VERIFIED'}</span><br>
-                            Threat Score: <span class="${isThreat ? 'risk-high' : 'risk-low'}">${isThreat ? 'CRITICAL' : 'SECURE'}</span>
+                            <div style="color:var(--neon); border-bottom:1px solid #222; margin-bottom:5px; font-size:9px;">DEEP FORENSICS</div>
+                            ISP: <span style="color:#aaa">${n.provider || 'Unidentified'}</span><br>
+                            GPU: <span style="color:#aaa; font-size:9px;">${(n.gpu || 'N/A').substring(0,30)}...</span><br>
+                            Status: <span class="${isThreat ? 'risk-high' : 'risk-low'}">${isThreat ? 'CRITICAL THREAT' : 'LOW RISK'}</span>
                         </div>
 
-                        <div style="display:flex; gap:5px; margin-top:10px;">
-                            <button class="btn" style="flex:1" onclick="window.open('https://www.shodan.io/host/${n.ip}')">SHODAN</button>
-                            <button class="btn" style="flex:1; border-color:var(--danger); color:var(--danger)" onclick="toggleBan('${n.ip}')">${isBanned?'UNBAN':'BAN'}</button>
+                        <div class="osint-grid">
+                            <button class="btn" style="border-color:#ff9800; color:#ff9800" onclick="window.open('https://www.abuseipdb.com/check/${n.ip}')">AbuseIPDB</button>
+                            <button class="btn" style="border-color:#2196f3; color:#2196f3" onclick="window.open('https://www.virustotal.com/gui/ip-address/${n.ip}')">VirusTotal</button>
+                            <button class="btn" style="border-color:#cfd8dc; color:#cfd8dc" onclick="window.open('https://www.shodan.io/host/${n.ip}')">Shodan</button>
+                            <button class="btn" style="border-color:#4caf50; color:#4caf50" onclick="window.open('https://who.is/whois-ip/ip-address/${n.ip}')">Whois</button>
                         </div>
+
+                        <button class="btn" style="margin-top:10px; border-color:var(--danger); color:var(--danger); font-weight:bold;" onclick="toggleBan('${n.ip}')">
+                            ${isBanned ? 'UNBAN TARGET' : 'TERMINATE ACCESS (BAN)'}
+                        </button>
                     </div>`;
             });
         }
 
         function exportToCSV() {
             _supabase.from('telemetry').select('*').then(({data}) => {
-                const head = "ID,IP,Location,Time,UserAgent\n";
-                const rows = data.map(n => `${n.id},${n.ip},"${n.location}",${n.created_at},"${n.user_agent.replace(/"/g,"'")}"`).join("\n");
+                const head = "ID,IP,UID,Location,Bot,Time\n";
+                const rows = data.map(n => `${n.id},${n.ip},${n.uid},"${n.location}",${n.is_bot},${n.created_at}`).join("\n");
                 const blob = new Blob([head + rows], {type: 'text/csv'});
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url; a.download = `sixeyes_v13_report.csv`;
+                a.href = url; a.download = `sixeyes_threat_report.csv`;
                 a.click();
             });
         }
@@ -271,5 +207,4 @@
         window.onload = () => { initMap(); initChart(); sync(); setInterval(sync, 15000); };
     </script>
 </body>
-</html>
 </html>
