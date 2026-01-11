@@ -3,95 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIX EYES | SUPREME CONTROL v5.0</title>
+    <title>SIX EYES | FIREWALL EDITION v5.5</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --neon: #00d9ff; --bg: #020202; --panel: #0a0a0c; --java: #00ff41; --danger: #ff003c; --warn: #ffcc00; }
-        body { background: var(--bg); color: var(--neon); font-family: 'JetBrains Mono', monospace; margin: 0; padding: 20px; overflow-x: hidden; }
+        :root { --neon: #00d9ff; --bg: #020202; --panel: #0a0a0c; --java: #00ff41; --danger: #ff003c; --warn: #ffcc00; --sidebar-w: 300px; }
+        body { background: var(--bg); color: var(--neon); font-family: 'JetBrains Mono', monospace; margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar Navigation */
-        .sidebar { background: rgba(10, 10, 12, 0.98); border-right: 1px solid #1a1a1a; height: 100vh; position: fixed; left: 0; top: 0; width: 320px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; z-index: 100; }
-        .main-content { margin-left: 340px; }
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-w); background: var(--panel); border-right: 1px solid #1a1a1a; padding: 20px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+        .main-content { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
 
-        /* Terminal Console */
-        #console-log { flex-grow: 1; overflow-y: auto; background: #000; padding: 10px; border: 1px solid #111; font-size: 11px; color: var(--java); margin-top: 20px; border-left: 2px solid var(--java); }
-        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #080808; padding-bottom: 3px; opacity: 0.8; }
-
-        /* Analytics Section */
-        .analytics-row { display: grid; grid-template-columns: 2.5fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .security-status { background: var(--panel); border: 1px solid #111; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; height: 180px; }
-        .danger-blink { border: 2px solid var(--danger) !important; animation: pulse-red 1.5s infinite; }
-        @keyframes pulse-red { 0% { box-shadow: inset 0 0 10px var(--danger); } 50% { box-shadow: inset 0 0 30px var(--danger); } 100% { box-shadow: inset 0 0 10px var(--danger); } }
+        /* Dashboard Elements */
+        .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .status-box { background: #050505; border: 1px solid #111; padding: 20px; position: relative; overflow: hidden; }
+        .integrity-danger { border: 2px solid var(--danger) !important; animation: alarm-pulse 1s infinite; }
+        @keyframes alarm-pulse { 0% { box-shadow: inset 0 0 10px var(--danger); } 50% { box-shadow: inset 0 0 30px var(--danger); } 100% { box-shadow: inset 0 0 10px var(--danger); } }
 
         /* Stats Header */
-        .stats-header { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
-        .stat-item { background: var(--panel); padding: 15px; border-bottom: 2px solid var(--neon); }
-        .stat-item label { display: block; font-size: 9px; color: #444; margin-bottom: 5px; text-transform: uppercase; }
-        .stat-item span { font-size: 1.4rem; font-weight: bold; color: #fff; }
+        .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--panel); padding: 15px; border-left: 3px solid var(--neon); }
+        .stat-card label { display: block; font-size: 9px; color: #444; text-transform: uppercase; }
+        .stat-card span { font-size: 1.2rem; font-weight: bold; color: #fff; }
 
-        /* Data Cards */
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
-        .target-card { background: var(--panel); border: 1px solid #1a1a1a; padding: 20px; position: relative; transition: 0.3s; border-radius: 2px; }
-        .target-card:hover { border-color: var(--neon); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        .target-card.high-risk { border-left: 4px solid var(--danger); background: linear-gradient(90deg, #120202 0%, #0a0a0c 100%); }
+        /* Cards */
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .target-card { background: #0d0d0f; border: 1px solid #1a1a1a; padding: 15px; position: relative; border-radius: 4px; }
+        .target-card.critical { border: 1px solid var(--danger); background: linear-gradient(135deg, #150000 0%, #0d0d0f 100%); }
+        .target-card.whitelist { border: 1px solid var(--java); }
 
-        /* Search & Actions */
-        .action-bar { margin-bottom: 25px; background: var(--panel); padding: 15px; display: flex; gap: 10px; border: 1px solid #111; align-items: center; }
-        input { background:#000; border:1px solid #222; color:var(--neon); padding:12px; flex:1; outline: none; font-family: inherit; font-size: 12px; }
-        .btn-action { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 8px 15px; font-size: 10px; cursor: pointer; text-transform: uppercase; font-weight: bold; transition: 0.2s; }
-        .btn-action:hover { background: var(--neon); color: #000; }
+        /* Controls */
+        #console { flex: 1; background: #000; font-size: 10px; color: var(--java); padding: 10px; overflow-y: auto; margin: 15px 0; border: 1px solid #111; }
+        .btn { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 10px; font-size: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; }
+        .btn:hover { background: var(--neon); color: #000; }
         .btn-danger { border-color: var(--danger); color: var(--danger); }
         .btn-danger:hover { background: var(--danger); color: #fff; }
 
-        .live-feed { font-size: 11px; height: 100px; overflow-y: auto; width: 100%; color: #888; border-top: 1px solid #111; margin-top: 10px; padding-top: 5px; }
-        
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #222; }
+        .live-stream { font-size: 10px; color: #666; height: 100px; overflow-y: auto; line-height: 1.5; }
+        .flag { margin-right: 5px; }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
         <h2 style="color: #fff; letter-spacing: 2px; margin:0;">🌀 SIX EYES</h2>
-        <p style="font-size: 10px; color: #444;">SUPREME COMMAND v5.0</p>
+        <p style="font-size: 9px; color: #444; margin-bottom: 20px;">FIREWALL ENGINE v5.5</p>
         
-        <div id="console-log">
-            <div class="log-entry">> Initializing Void Connection...</div>
-        </div>
+        <div id="console"></div>
 
-        <div style="margin-top: 20px;">
-            <button class="btn-action" onclick="sync()" style="width: 100%; padding: 12px;">FORCE RE-SCAN</button>
-            <button class="btn-action btn-danger" onclick="purgeAllCritical()" style="width: 100%; margin-top: 10px;">PURGE ALL CRITICAL</button>
-        </div>
+        <button class="btn" onclick="sync()">REFRESH UPLINK</button>
+        <button class="btn btn-danger" onclick="massPurge()">PURGE ALL THREATS</button>
+        <button class="btn" style="border-color: #333; color: #333;" onclick="clearLogs()">CLEAR CONSOLE</button>
     </aside>
 
     <main class="main-content">
-        <div class="analytics-row">
-            <div class="security-status" style="align-items: flex-start; justify-content: flex-start;">
-                <label style="font-size: 10px; color: #444; letter-spacing: 1px;">REAL-TIME ACTIVITY FEED</label>
-                <div id="live-feed" class="live-feed"></div>
+        <div class="analytics-grid">
+            <div class="status-box">
+                <label style="font-size: 10px; color: #444;">ACTIVE TRAFFIC STREAM</label>
+                <div id="live-feed" class="live-stream"></div>
             </div>
-            <div id="integrity-panel" class="security-status">
-                <label style="font-size: 10px; color: #444;">SECURITY INTEGRITY</label>
-                <div id="safety-score" style="font-size: 48px; font-weight: bold; color: var(--java);">100%</div>
-                <div id="safety-label" style="font-size: 9px; letter-spacing: 1px;">SYSTEM SECURE</div>
+            <div id="integrity-panel" class="status-box" style="text-align: center;">
+                <label style="font-size: 10px; color: #444;">SYSTEM INTEGRITY</label>
+                <div id="score" style="font-size: 40px; font-weight: bold; margin: 10px 0;">100%</div>
+                <div id="status-text" style="font-size: 9px; letter-spacing: 2px;">SECURE</div>
             </div>
         </div>
 
-        <div class="stats-header">
-            <div class="stat-item"><label>Total Records</label><span id="st-total">0</span></div>
-            <div class="stat-item"><label>Threats Found</label><span id="st-threats" style="color:var(--danger)">0</span></div>
-            <div class="stat-item"><label>Last Sync</label><span id="st-time">--:--:--</span></div>
+        <div class="stats-bar">
+            <div class="stat-card"><label>Total Nodes</label><span id="count-total">0</span></div>
+            <div class="stat-card" style="border-color: var(--danger);"><label>Threats</label><span id="count-threats">0</span></div>
+            <div class="stat-card" style="border-color: var(--java);"><label>Whitelisted</label><span id="count-white">0</span></div>
+            <div class="stat-card"><label>Last Sync</label><span id="count-time">--:--</span></div>
         </div>
 
-        <div class="action-bar">
-            <input type="text" id="target-search" placeholder="FILTER BY OPERATION_ID (CASE SENSITIVE)">
-            <button class="btn-action" onclick="executeSearch()">SEARCH</button>
-            <button class="btn-action" style="border-color:#333; color:#333;" onclick="clearFilter()">RESET</button>
-        </div>
-
-        <div class="data-grid" id="data-display"></div>
+        <div class="data-grid" id="display"></div>
     </main>
 
     <script>
@@ -99,125 +84,102 @@
         const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Sizning loglaringizdagi ma'lum xavfli IP-lar
-        const BLACKLIST = ['72.153.230.168', '94.230.231.77', '2a0c:4d00:2:8::2', '94.238.231.77'];
+        // CONFIGURATION
+        const BLACKLIST = ['72.153.230.168']; // Bot IP
+        const WHITELIST = ['91.211.134.16', '94.230.231.77', '2a0c:4d00:2:8::2']; // Sizning Shvetsariya IP-laringiz
 
-        function term(msg) {
-            const con = document.getElementById('console-log');
-            con.innerHTML += `<div class="log-entry">> [${new Date().toLocaleTimeString()}] ${msg}</div>`;
-            con.scrollTop = con.scrollHeight;
+        function log(msg) {
+            const c = document.getElementById('console');
+            c.innerHTML += `<div>> [${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            c.scrollTop = c.scrollHeight;
         }
 
         async function sync() {
             const { data, count } = await _supabase.from('telemetry').select('*', { count: 'exact' }).order('created_at', { ascending: false });
             if(data) {
-                document.getElementById('st-total').innerText = count;
-                document.getElementById('st-time').innerText = new Date().toLocaleTimeString();
-                updateIntegrity(data);
+                document.getElementById('count-total').innerText = count;
+                document.getElementById('count-time').innerText = new Date().toLocaleTimeString();
+                updateUI(data);
                 render(data);
-                term("Database synchronized.");
             }
         }
 
-        function updateIntegrity(nodes) {
+        function updateUI(nodes) {
             const threats = nodes.filter(n => BLACKLIST.includes(n.ip)).length;
-            const score = nodes.length > 0 ? Math.round(Math.max(0, 100 - (threats / nodes.length * 100))) : 100;
-            
-            const scoreEl = document.getElementById('safety-score');
-            const labelEl = document.getElementById('safety-label');
+            const white = nodes.filter(n => WHITELIST.includes(n.ip)).length;
+            const score = nodes.length > 0 ? Math.round(((nodes.length - threats) / nodes.length) * 100) : 100;
+
+            document.getElementById('count-threats').innerText = threats;
+            document.getElementById('count-white').innerText = white;
+            document.getElementById('score').innerText = score + "%";
+
             const panel = document.getElementById('integrity-panel');
-            
-            document.getElementById('st-threats').innerText = threats;
-            scoreEl.innerText = score + "%";
+            const statusText = document.getElementById('status-text');
 
-            if (score <= 50) {
-                scoreEl.style.color = "var(--danger)";
-                labelEl.innerText = "CRITICAL THREATS DETECTED";
-                labelEl.style.color = "var(--danger)";
-                panel.classList.add('danger-blink');
-            } else if (score < 90) {
-                scoreEl.style.color = "var(--warn)";
-                labelEl.innerText = "SENSITIVE ACTIVITY FOUND";
-                labelEl.style.color = "var(--warn)";
-                panel.classList.remove('danger-blink');
+            if(score < 50) {
+                panel.className = 'status-box integrity-danger';
+                statusText.innerText = "CRITICAL: ATTACK DETECTED";
+                statusText.style.color = "var(--danger)";
             } else {
-                scoreEl.style.color = "var(--java)";
-                labelEl.innerText = "SYSTEM SECURE";
-                labelEl.style.color = "var(--java)";
-                panel.classList.remove('danger-blink');
+                panel.className = 'status-box';
+                statusText.innerText = "SYSTEM SECURE";
+                statusText.style.color = "var(--java)";
             }
-        }
-
-        function getFlag(loc) {
-            if (loc.includes("United States")) return "🇺🇸";
-            if (loc.includes("Uzbekistan")) return "🇺🇿";
-            if (loc.includes("Seychelles")) return "🇸🇨";
-            if (loc.includes("Ukraine")) return "🇺🇦";
-            return "🏳️";
         }
 
         function render(nodes) {
-            const display = document.getElementById('data-display');
-            const feed = document.getElementById('live-feed');
-            display.innerHTML = '';
+            const d = document.getElementById('display');
+            const f = document.getElementById('live-feed');
+            d.innerHTML = '';
             
-            // Live feed update
             if(nodes[0]) {
-                const feedEntry = `<div>[${new Date().toLocaleTimeString()}] SIGNAL FROM ${nodes[0].ip} (${getFlag(nodes[0].location)})</div>`;
-                feed.innerHTML = feedEntry + feed.innerHTML;
+                const flag = nodes[0].location.includes("United States") ? "🇺🇸" : "🇨🇭";
+                f.innerHTML = `<div>[${new Date().toLocaleTimeString()}] INBOUND: ${nodes[0].ip} (${flag})</div>` + f.innerHTML;
             }
 
-            nodes.forEach(node => {
-                const isRisk = BLACKLIST.includes(node.ip);
-                const os = node.user_agent.includes("Windows") ? "💻 WIN" : (node.user_agent.includes("Android") ? "📱 ANDROID" : "🌐 WEB");
-                
-                display.innerHTML += `
-                    <div class="target-card ${isRisk ? 'high-risk' : ''}">
-                        <div style="display:flex; justify-content:space-between; align-items:start; font-size:10px;">
-                            <span style="color:${isRisk?'var(--danger)':'var(--java)'}">● ${isRisk?'CRITICAL':'STABLE'}</span>
-                            <span>${os}</span>
+            nodes.forEach(n => {
+                const isRisk = BLACKLIST.includes(n.ip);
+                const isWhite = WHITELIST.includes(n.ip);
+                const flag = n.location.includes("United States") ? "🇺🇸" : (n.location.includes("Uzbekistan") ? "🇺🇿" : "🇨🇭");
+
+                d.innerHTML += `
+                    <div class="target-card ${isRisk ? 'critical' : (isWhite ? 'whitelist' : '')}">
+                        <div style="font-size: 9px; display:flex; justify-content:space-between;">
+                            <span style="color:${isRisk?'var(--danger)':(isWhite?'var(--java)':'#444')}">
+                                ● ${isRisk ? 'THREAT' : (isWhite ? 'AUTHORIZED' : 'UNKNOWN')}
+                            </span>
+                            <span>${n.user_agent.includes("Windows") ? '💻' : '📱'}</span>
                         </div>
-                        <h3 style="margin:12px 0 5px 0; font-size: 16px; color: #fff;">${node.ip}</h3>
-                        <p style="font-size:10px; color:#444; margin:0;">OP_ID: <span style="color:var(--neon)">${node.operation_id}</span></p>
-                        <p style="font-size:12px; margin:12px 0; color: #bbb;">${getFlag(node.location)} ${node.location}</p>
-                        <div style="display:flex; gap:8px; margin-top:15px;">
-                            <button class="btn-action" onclick="window.open('https://www.abuseipdb.com/check/${node.ip}')">ANALYZE</button>
-                            <button class="btn-action btn-danger" onclick="deleteNode('${node.id}')">PURGE</button>
+                        <div style="margin: 10px 0; font-weight:bold; font-size: 14px; color:#fff;">${n.ip}</div>
+                        <div style="font-size: 11px; color: #777;">${flag} ${n.location}</div>
+                        <div style="font-size: 9px; color: var(--neon); margin-top:5px;">OP: ${n.operation_id}</div>
+                        <div style="margin-top:15px; display:flex; gap:5px;">
+                            <button class="btn" style="height:25px; padding:0;" onclick="window.open('https://www.abuseipdb.com/check/${n.ip}')">WHOIS</button>
+                            <button class="btn btn-danger" style="height:25px; padding:0;" onclick="purgeNode('${n.id}')">PURGE</button>
                         </div>
                     </div>`;
             });
         }
 
-        async function purgeAllCritical() {
-            if(!confirm("Barcha xavfli (CRITICAL) loglarni butunlay o'chirib tashlaysizmi?")) return;
-            term("Executing Mass Purge Protocol...");
-            for (let ip of BLACKLIST) {
+        async function massPurge() {
+            if(!confirm("Barcha xavfli IP-larni o'chirishni tasdiqlaysizmi?")) return;
+            log("Executing Lockdown Purge...");
+            for(let ip of BLACKLIST) {
                 await _supabase.from('telemetry').delete().eq('ip', ip);
             }
-            term("Purge complete. Integrity restored.");
+            log("Lockdown successful.");
             sync();
         }
 
-        async function deleteNode(id) {
+        async function purgeNode(id) {
             await _supabase.from('telemetry').delete().eq('id', id);
-            term("Single node purged.");
             sync();
         }
 
-        async function executeSearch() {
-            const val = document.getElementById('target-search').value;
-            term(`Filtering by OP_ID: ${val}`);
-            const { data } = await _supabase.from('telemetry').select('*').eq('operation_id', val);
-            if(data) render(data);
-        }
-
-        function clearFilter() {
-            document.getElementById('target-search').value = '';
-            sync();
-        }
+        function clearLogs() { document.getElementById('console').innerHTML = ''; }
 
         setInterval(sync, 15000);
-        window.onload = sync;
+        window.onload = () => { log("Firewall initialized."); sync(); };
     </script>
 </body>
 </html>
