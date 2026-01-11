@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIX EYES | SUPREME OVERSEER v4.6</title>
+    <title>SIX EYES | SUPREME CONTROL v5.0</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -14,36 +14,38 @@
         .sidebar { background: rgba(10, 10, 12, 0.98); border-right: 1px solid #1a1a1a; height: 100vh; position: fixed; left: 0; top: 0; width: 320px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; z-index: 100; }
         .main-content { margin-left: 340px; }
 
-        /* Console */
+        /* Terminal Console */
         #console-log { flex-grow: 1; overflow-y: auto; background: #000; padding: 10px; border: 1px solid #111; font-size: 11px; color: var(--java); margin-top: 20px; border-left: 2px solid var(--java); }
         .log-entry { margin-bottom: 5px; border-bottom: 1px solid #080808; padding-bottom: 3px; opacity: 0.8; }
 
         /* Analytics Section */
         .analytics-row { display: grid; grid-template-columns: 2.5fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .security-status { background: var(--panel); border: 1px solid #111; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        .security-status.danger-blink { border: 1px solid var(--danger); animation: pulse-red 2s infinite; }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 5px var(--danger); } 50% { box-shadow: 0 0 20px var(--danger); } 100% { box-shadow: 0 0 5px var(--danger); } }
+        .security-status { background: var(--panel); border: 1px solid #111; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; height: 180px; }
+        .danger-blink { border: 2px solid var(--danger) !important; animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: inset 0 0 10px var(--danger); } 50% { box-shadow: inset 0 0 30px var(--danger); } 100% { box-shadow: inset 0 0 10px var(--danger); } }
 
         /* Stats Header */
-        .stats-header { display: flex; gap: 20px; margin-bottom: 25px; }
-        .stat-item { flex: 1; background: var(--panel); padding: 15px; border-bottom: 2px solid var(--neon); }
+        .stats-header { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
+        .stat-item { background: var(--panel); padding: 15px; border-bottom: 2px solid var(--neon); }
         .stat-item label { display: block; font-size: 9px; color: #444; margin-bottom: 5px; text-transform: uppercase; }
         .stat-item span { font-size: 1.4rem; font-weight: bold; color: #fff; }
 
         /* Data Cards */
         .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
-        .target-card { background: var(--panel); border: 1px solid #1a1a1a; padding: 20px; position: relative; transition: 0.3s; }
-        .target-card:hover { border-color: var(--neon); transform: translateY(-3px); }
-        .target-card.high-risk { border-left: 4px solid var(--danger); background: linear-gradient(90deg, #1a0000 0%, #0a0a0c 100%); }
+        .target-card { background: var(--panel); border: 1px solid #1a1a1a; padding: 20px; position: relative; transition: 0.3s; border-radius: 2px; }
+        .target-card:hover { border-color: var(--neon); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .target-card.high-risk { border-left: 4px solid var(--danger); background: linear-gradient(90deg, #120202 0%, #0a0a0c 100%); }
 
         /* Search & Actions */
         .action-bar { margin-bottom: 25px; background: var(--panel); padding: 15px; display: flex; gap: 10px; border: 1px solid #111; align-items: center; }
-        input { background:#000; border:1px solid #222; color:var(--neon); padding:12px; flex:1; outline: none; font-family: inherit; }
-        .btn-action { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 8px 15px; font-size: 10px; cursor: pointer; text-transform: uppercase; font-weight: bold; }
+        input { background:#000; border:1px solid #222; color:var(--neon); padding:12px; flex:1; outline: none; font-family: inherit; font-size: 12px; }
+        .btn-action { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 8px 15px; font-size: 10px; cursor: pointer; text-transform: uppercase; font-weight: bold; transition: 0.2s; }
         .btn-action:hover { background: var(--neon); color: #000; }
         .btn-danger { border-color: var(--danger); color: var(--danger); }
         .btn-danger:hover { background: var(--danger); color: #fff; }
 
+        .live-feed { font-size: 11px; height: 100px; overflow-y: auto; width: 100%; color: #888; border-top: 1px solid #111; margin-top: 10px; padding-top: 5px; }
+        
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #222; }
     </style>
@@ -52,39 +54,39 @@
 
     <aside class="sidebar">
         <h2 style="color: #fff; letter-spacing: 2px; margin:0;">🌀 SIX EYES</h2>
-        <p style="font-size: 10px; color: #444;">SECURITY MONITOR v4.6</p>
+        <p style="font-size: 10px; color: #444;">SUPREME COMMAND v5.0</p>
         
         <div id="console-log">
-            <div class="log-entry">> System Online...</div>
+            <div class="log-entry">> Initializing Void Connection...</div>
         </div>
 
         <div style="margin-top: 20px;">
-            <button class="btn-action" onclick="sync()" style="width: 100%; padding: 12px;">REFRESH DATA</button>
-            <button class="btn-action btn-danger" onclick="purgeThreats()" style="width: 100%; margin-top: 10px;">MASS PURGE CRITICAL</button>
+            <button class="btn-action" onclick="sync()" style="width: 100%; padding: 12px;">FORCE RE-SCAN</button>
+            <button class="btn-action btn-danger" onclick="purgeAllCritical()" style="width: 100%; margin-top: 10px;">PURGE ALL CRITICAL</button>
         </div>
     </aside>
 
     <main class="main-content">
         <div class="analytics-row">
-            <div class="security-status" style="align-items: flex-start;">
-                <label style="font-size: 10px; color: #444;">REAL-TIME ACTIVITY FEED</label>
-                <div id="live-stream" style="font-size: 11px; margin-top: 10px; color: #eee; width: 100%;"></div>
+            <div class="security-status" style="align-items: flex-start; justify-content: flex-start;">
+                <label style="font-size: 10px; color: #444; letter-spacing: 1px;">REAL-TIME ACTIVITY FEED</label>
+                <div id="live-feed" class="live-feed"></div>
             </div>
             <div id="integrity-panel" class="security-status">
                 <label style="font-size: 10px; color: #444;">SECURITY INTEGRITY</label>
                 <div id="safety-score" style="font-size: 48px; font-weight: bold; color: var(--java);">100%</div>
-                <div id="safety-label" style="font-size: 10px;">SECURE</div>
+                <div id="safety-label" style="font-size: 9px; letter-spacing: 1px;">SYSTEM SECURE</div>
             </div>
         </div>
 
         <div class="stats-header">
-            <div class="stat-item"><label>Total Nodes</label><span id="st-total">0</span></div>
+            <div class="stat-item"><label>Total Records</label><span id="st-total">0</span></div>
             <div class="stat-item"><label>Threats Found</label><span id="st-threats" style="color:var(--danger)">0</span></div>
             <div class="stat-item"><label>Last Sync</label><span id="st-time">--:--:--</span></div>
         </div>
 
         <div class="action-bar">
-            <input type="text" id="target-search" placeholder="FILTER BY OP_ID (EX: GOJO_01)">
+            <input type="text" id="target-search" placeholder="FILTER BY OPERATION_ID (CASE SENSITIVE)">
             <button class="btn-action" onclick="executeSearch()">SEARCH</button>
             <button class="btn-action" style="border-color:#333; color:#333;" onclick="clearFilter()">RESET</button>
         </div>
@@ -97,8 +99,8 @@
         const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Xavfli IP-lar bazasi (Siz aytgan Microsoft serveri va boshqalar)
-        const CRITICAL_IPS = ['72.153.230.168', '94.230.231.77', '2a0c:4d00:2:8::2'];
+        // Sizning loglaringizdagi ma'lum xavfli IP-lar
+        const BLACKLIST = ['72.153.230.168', '94.230.231.77', '2a0c:4d00:2:8::2', '94.238.231.77'];
 
         function term(msg) {
             const con = document.getElementById('console-log');
@@ -113,12 +115,13 @@
                 document.getElementById('st-time').innerText = new Date().toLocaleTimeString();
                 updateIntegrity(data);
                 render(data);
+                term("Database synchronized.");
             }
         }
 
         function updateIntegrity(nodes) {
-            const threats = nodes.filter(n => CRITICAL_IPS.includes(n.ip)).length;
-            const score = nodes.length > 0 ? Math.max(0, 100 - (threats * 15)) : 100;
+            const threats = nodes.filter(n => BLACKLIST.includes(n.ip)).length;
+            const score = nodes.length > 0 ? Math.round(Math.max(0, 100 - (threats / nodes.length * 100))) : 100;
             
             const scoreEl = document.getElementById('safety-score');
             const labelEl = document.getElementById('safety-label');
@@ -127,11 +130,16 @@
             document.getElementById('st-threats').innerText = threats;
             scoreEl.innerText = score + "%";
 
-            if (score < 60) {
+            if (score <= 50) {
                 scoreEl.style.color = "var(--danger)";
                 labelEl.innerText = "CRITICAL THREATS DETECTED";
                 labelEl.style.color = "var(--danger)";
                 panel.classList.add('danger-blink');
+            } else if (score < 90) {
+                scoreEl.style.color = "var(--warn)";
+                labelEl.innerText = "SENSITIVE ACTIVITY FOUND";
+                labelEl.style.color = "var(--warn)";
+                panel.classList.remove('danger-blink');
             } else {
                 scoreEl.style.color = "var(--java)";
                 labelEl.innerText = "SYSTEM SECURE";
@@ -144,62 +152,61 @@
             if (loc.includes("United States")) return "🇺🇸";
             if (loc.includes("Uzbekistan")) return "🇺🇿";
             if (loc.includes("Seychelles")) return "🇸🇨";
-            if (loc.includes("Germany")) return "🇩🇪";
+            if (loc.includes("Ukraine")) return "🇺🇦";
             return "🏳️";
         }
 
         function render(nodes) {
             const display = document.getElementById('data-display');
-            const stream = document.getElementById('live-stream');
+            const feed = document.getElementById('live-feed');
             display.innerHTML = '';
             
+            // Live feed update
             if(nodes[0]) {
-                stream.innerHTML = `<div style="border-bottom:1px solid #111; padding-bottom:5px;">
-                    [${new Date().toLocaleTimeString()}] NEW SIGNAL: <span style="color:var(--neon)">${nodes[0].ip}</span> 
-                    (${getFlag(nodes[0].location)} ${nodes[0].location.split(',')[0]})
-                </div>` + stream.innerHTML;
+                const feedEntry = `<div>[${new Date().toLocaleTimeString()}] SIGNAL FROM ${nodes[0].ip} (${getFlag(nodes[0].location)})</div>`;
+                feed.innerHTML = feedEntry + feed.innerHTML;
             }
 
             nodes.forEach(node => {
-                const isRisk = CRITICAL_IPS.includes(node.ip);
-                const os = node.user_agent.includes("Windows") ? "💻" : "📱";
+                const isRisk = BLACKLIST.includes(node.ip);
+                const os = node.user_agent.includes("Windows") ? "💻 WIN" : (node.user_agent.includes("Android") ? "📱 ANDROID" : "🌐 WEB");
                 
                 display.innerHTML += `
                     <div class="target-card ${isRisk ? 'high-risk' : ''}">
-                        <div style="display:flex; justify-content:space-between; align-items:start;">
-                            <span style="font-size:10px; color:${isRisk?'var(--danger)':'var(--java)'}">
-                                ${isRisk ? '● CRITICAL' : '● STABLE'}
-                            </span>
-                            <span style="font-size:12px;">${os}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:start; font-size:10px;">
+                            <span style="color:${isRisk?'var(--danger)':'var(--java)'}">● ${isRisk?'CRITICAL':'STABLE'}</span>
+                            <span>${os}</span>
                         </div>
-                        <h3 style="margin:10px 0 5px 0;">${node.ip}</h3>
-                        <p style="font-size:11px; color:#444; margin:0;">OP_ID: <span style="color:var(--neon)">${node.operation_id}</span></p>
-                        <p style="font-size:13px; margin:10px 0;">${getFlag(node.location)} ${node.location}</p>
-                        <div style="display:flex; gap:10px; margin-top:15px;">
-                            <button class="btn-action" onclick="window.open('https://www.abuseipdb.com/check/${node.ip}')">INFO</button>
+                        <h3 style="margin:12px 0 5px 0; font-size: 16px; color: #fff;">${node.ip}</h3>
+                        <p style="font-size:10px; color:#444; margin:0;">OP_ID: <span style="color:var(--neon)">${node.operation_id}</span></p>
+                        <p style="font-size:12px; margin:12px 0; color: #bbb;">${getFlag(node.location)} ${node.location}</p>
+                        <div style="display:flex; gap:8px; margin-top:15px;">
+                            <button class="btn-action" onclick="window.open('https://www.abuseipdb.com/check/${node.ip}')">ANALYZE</button>
                             <button class="btn-action btn-danger" onclick="deleteNode('${node.id}')">PURGE</button>
                         </div>
                     </div>`;
             });
         }
 
-        async function purgeThreats() {
-            if(!confirm("Barcha aniqlangan xavfli IP-larni bazadan tozalashni tasdiqlaysizmi?")) return;
-            term("Initiating Mass Purge...");
-            for (let ip of CRITICAL_IPS) {
+        async function purgeAllCritical() {
+            if(!confirm("Barcha xavfli (CRITICAL) loglarni butunlay o'chirib tashlaysizmi?")) return;
+            term("Executing Mass Purge Protocol...");
+            for (let ip of BLACKLIST) {
                 await _supabase.from('telemetry').delete().eq('ip', ip);
             }
-            term("Mass Purge Complete. Integrity Restored.");
+            term("Purge complete. Integrity restored.");
             sync();
         }
 
         async function deleteNode(id) {
             await _supabase.from('telemetry').delete().eq('id', id);
+            term("Single node purged.");
             sync();
         }
 
         async function executeSearch() {
             const val = document.getElementById('target-search').value;
+            term(`Filtering by OP_ID: ${val}`);
             const { data } = await _supabase.from('telemetry').select('*').eq('operation_id', val);
             if(data) render(data);
         }
@@ -209,7 +216,7 @@
             sync();
         }
 
-        setInterval(sync, 10000);
+        setInterval(sync, 15000);
         window.onload = sync;
     </script>
 </body>
