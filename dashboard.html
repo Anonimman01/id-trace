@@ -2,8 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIX EYES | HARDENED TACTICAL v15.0</title>
+    <title>SIX EYES | HARDENED v15.5</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,60 +10,30 @@
     <style>
         :root { --neon: #00d9ff; --bg: #020202; --panel: #0a0a0c; --java: #00ff41; --danger: #ff003c; --warn: #ffcc00; }
         body { background: var(--bg); color: var(--neon); font-family: 'JetBrains Mono', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar Styles */
         .sidebar { width: 350px; background: var(--panel); border-right: 1px solid #1a1a1a; padding: 15px; display: flex; flex-direction: column; z-index: 10; }
-        .main { flex: 1; padding: 20px; overflow-y: auto; background: radial-gradient(circle at center, #050505 0%, #000 100%); position: relative; }
-        
-        /* Visual Components */
+        .main { flex: 1; padding: 20px; overflow-y: auto; background: radial-gradient(circle at center, #050505 0%, #000 100%); }
         .visuals-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; margin-bottom: 20px; height: 280px; }
         #map { background: #000; border: 1px solid #222; border-radius: 4px; }
         .chart-container { background: var(--panel); border: 1px solid #222; padding: 10px; display: flex; flex-direction: column; justify-content: space-around; }
-
-        .blacklist-area { background: #000; border: 1px solid var(--danger); padding: 10px; font-size: 11px; margin-top: 10px; height: 150px; overflow-y: auto; color: var(--danger); }
-        
-        /* Cards */
+        .blacklist-area { background: #000; border: 1px solid var(--danger); padding: 10px; font-size: 11px; margin-top: 10px; height: 120px; overflow-y: auto; color: var(--danger); }
         .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 15px; }
-        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); transition: 0.3s; position: relative; }
+        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); transition: 0.3s; }
         .is-banned { border-left-color: var(--danger) !important; background: rgba(255, 0, 60, 0.05); }
-
         .badge { font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-right: 5px; font-weight: bold; }
         .bg-danger { background: var(--danger); color: #fff; }
         .bg-success { background: var(--java); color: #000; }
-
-        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 6px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 10px; font-family: inherit; transition: 0.2s; text-transform: uppercase; }
-        .btn:hover { background: rgba(0, 217, 255, 0.1); }
-        
-        #terminal { font-size:9px; color:var(--java); margin-top:10px; height:100px; overflow-y:auto; background: #000; padding: 5px; border: 1px solid #111; border-radius: 4px; }
+        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 6px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 10px; text-transform: uppercase; }
+        #terminal { font-size:9px; color:var(--java); margin-top:10px; height:100px; overflow-y:auto; background: #000; padding: 5px; border: 1px solid #111; }
         .investigator-panel { font-size: 10px; color: #666; background: #050505; padding: 10px; margin-top: 10px; border: 1px dashed #222; }
-        .osint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; }
-
-        /* Tarpit Overlay */
-        #tarpit-screen { 
-            display: none; position: fixed; top:0; left:0; width:100%; height:100%; 
-            background: #000; z-index: 10000; color: var(--java); 
-            flex-direction: column; align-items: center; justify-content: center; text-align: center;
-        }
     </style>
 </head>
 <body>
 
-    <div id="tarpit-screen">
-        <div style="font-size: 20px; margin-bottom: 20px;">🛡️ SECURITY INTERCEPT: IP_BLACKLISTED</div>
-        <div style="font-size: 14px; color: #888;">Establishing secure tunnel... Please wait.</div>
-        <div id="tarpit-timer" style="font-size: 60px; font-weight: bold; margin: 20px 0;">60</div>
-        <div style="font-size: 10px; color: var(--danger);">AUTH_FAIL: ACCESS_RESTRICTED_BY_ADMINISTRATOR</div>
-    </div>
-
     <aside class="sidebar">
-        <h2 style="color:#fff; margin:0;">🌀 SIX EYES v15.0</h2>
-        <p style="font-size: 10px; color:#444; margin-bottom:15px;">FULL STACK CYBER COMMAND</p>
-        
-        <button class="btn" style="border-color:var(--java); color:var(--java);" onclick="exportToCSV()">📂 EXPORT LOGS (CSV)</button>
-
-        <div style="font-size: 10px; color: var(--danger); margin-top: 20px; font-weight: bold;">🔴 LIVE BLACKLIST (SERVER-SIDE)</div>
-        <div id="blacklist" class="blacklist-area">Syncing...</div>
-
+        <h2 style="color:#fff; margin:0;">🌀 SIX EYES v15.5</h2>
+        <button class="btn" style="border-color:var(--java); color:var(--java);" onclick="exportToCSV()">📂 EXPORT DATABASE</button>
+        <div style="font-size: 10px; color: var(--danger); margin-top: 15px;">🔴 SERVER-SIDE BLACKLIST:</div>
+        <div id="blacklist" class="blacklist-area">Kutilmoqda...</div>
         <div id="terminal"></div>
     </aside>
 
@@ -73,60 +42,23 @@
             <div id="map"></div>
             <div class="chart-container">
                 <div style="text-align: center;">
-                    <label style="font-size: 10px; color: #555;">FIREWALL STATUS</label>
+                    <label style="font-size: 10px; color: #555;">SECURITY STATUS</label>
                     <div id="integrity-stat" style="font-size: 45px; font-weight: bold;">100%</div>
-                    <div id="shield-status" style="font-size: 10px; color: var(--java);">✅ RLS ACTIVE & ENFORCED</div>
+                    <div style="font-size: 10px; color: var(--java);">ACTIVE RLS PROTECTION</div>
                 </div>
                 <div style="font-size: 11px; border-top: 1px solid #222; padding-top: 10px; margin-top:10px;">
-                    <div style="display:flex; justify-content:space-between;"><span>LOG ENTRIES:</span> <span id="stat-total" style="color:var(--neon)">0</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>BANNED TARGETS:</span> <span id="stat-banned" style="color:var(--danger)">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>TOTAL LOGS:</span> <span id="stat-total">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>BANS:</span> <span id="stat-banned">0</span></div>
                 </div>
             </div>
         </div>
-
         <div class="data-grid" id="display"></div>
     </main>
 
     <script>
-        // Supabase Init
         const _supabase = window.supabase.createClient('https://kisbfmcxvcwtxfwbgexb.supabase.co', 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz');
-
         let map, globalBlacklist = [];
 
-        // 1. SHIELD & TARPIT LOGIC (Self-Protection)
-        async function runShield() {
-            try {
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const { ip } = await ipRes.json();
-                
-                const { data: bannedEntry } = await _supabase
-                    .from('blacklist')
-                    .select('ip')
-                    .eq('ip', ip)
-                    .single();
-
-                if (bannedEntry) {
-                    activateTarpit();
-                }
-            } catch (e) { console.error("Shield check failed", e); }
-        }
-
-        function activateTarpit() {
-            const screen = document.getElementById('tarpit-screen');
-            const timerDisplay = document.getElementById('tarpit-timer');
-            screen.style.display = 'flex';
-            let count = 60;
-            const interval = setInterval(() => {
-                count--;
-                timerDisplay.innerText = count;
-                if (count <= 0) {
-                    clearInterval(interval);
-                    window.location.href = "https://www.google.com";
-                }
-            }, 1000);
-        }
-
-        // 2. DASHBOARD LOGIC
         function sanitize(str) { return str ? str.replace(/[<>'"/;()]/g, "⚠️") : "N/A"; }
 
         function initMap() {
@@ -135,44 +67,40 @@
         }
 
         async function sync() {
-            // Blacklistni olish
-            const { data: bData } = await _supabase.from('blacklist').select('ip');
-            globalBlacklist = bData ? bData.map(b => b.ip) : [];
-            
-            // Telemetriyani olish
-            const { data: tData } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false });
-            
-            if (tData) {
-                render(tData);
-                updateStats(tData, globalBlacklist);
+            try {
+                const { data: bData, error: bErr } = await _supabase.from('blacklist').select('ip');
+                if (bErr) throw bErr;
+                globalBlacklist = bData ? bData.map(b => b.ip) : [];
+                
+                const { data: tData, error: tErr } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false });
+                if (tErr) throw tErr;
+                
+                render(tData || []);
+                updateStats(tData || [], globalBlacklist);
                 updateBlacklistUI();
+            } catch (e) {
+                log("SYNC ERROR: " + e.message);
             }
         }
 
         function updateBlacklistUI() {
             const container = document.getElementById('blacklist');
             container.innerHTML = globalBlacklist.length > 0 
-                ? globalBlacklist.map(ip => `<div>🚫 ${ip} <span style="float:right;cursor:pointer;color:#fff" onclick="toggleBan('${ip}')">REVOKE</span></div>`).join('')
-                : "No active server bans.";
+                ? globalBlacklist.map(ip => `<div>🚫 ${ip} <span style="float:right;cursor:pointer" onclick="toggleBan('${ip}')">OFF</span></div>`).join('')
+                : "Blacklist bo'sh";
         }
 
         function updateStats(logs, banned) {
             document.getElementById('stat-total').innerText = logs.length;
             document.getElementById('stat-banned').innerText = banned.length;
-            const integrity = logs.length > 0 ? Math.max(0, 100 - (banned.length * 5)) : 100;
-            document.getElementById('integrity-stat').innerText = integrity + "%";
         }
 
         async function toggleBan(ip) {
-            const isCurrentlyBanned = globalBlacklist.includes(ip);
-            log(`ACTION: ${isCurrentlyBanned ? 'Revoking' : 'Executing'} hard-ban for ${ip}`);
-
-            if (isCurrentlyBanned) {
+            const isBanned = globalBlacklist.includes(ip);
+            if (isBanned) {
                 await _supabase.from('blacklist').delete().eq('ip', ip);
-                log(`SUCCESS: ${ip} access restored.`);
             } else {
-                await _supabase.from('blacklist').insert([{ ip: ip, reason: 'Tactical Termination' }]);
-                log(`CRITICAL: ${ip} blocked at firewall level.`);
+                await _supabase.from('blacklist').insert([{ ip: ip, reason: 'Manual' }]);
             }
             sync();
         }
@@ -180,32 +108,22 @@
         function render(nodes) {
             const d = document.getElementById('display');
             d.innerHTML = '';
-            
             nodes.forEach(n => {
                 const isBanned = globalBlacklist.includes(n.ip);
+                // XATONI TUZATISH: threat_type bo'sh bo'lsa 'none' ishlatiladi
+                const threat = (n.threat_type || 'none').toUpperCase();
+                
                 d.innerHTML += `
                     <div class="card ${isBanned ? 'is-banned' : ''}">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                            <div>
-                                ${isBanned ? '<span class="badge bg-danger">TERMINATED</span>' : '<span class="badge bg-success">MONITORED</span>'}
-                                ${n.is_bot ? '<span class="badge" style="background:#444">BOT</span>' : ''}
-                            </div>
-                            <span style="font-size:8px; color:#555">${n.uid || 'NO_UID'}</span>
-                        </div>
+                        <div style="font-size:8px; color:#555">UID: ${n.uid || 'N/A'}</div>
                         <div style="font-weight:bold; font-size:18px; color:#fff;">${sanitize(n.ip)}</div>
-                        <div style="font-size:11px; color:var(--neon); margin: 3px 0;">📍 ${sanitize(n.location)}</div>
+                        <div style="font-size:11px; color:var(--neon);">📍 ${sanitize(n.location)}</div>
                         <div class="investigator-panel">
-                            ISP: <span style="color:#aaa">${n.provider || 'N/A'}</span><br>
-                            GPU: <span style="color:#aaa; font-size:9px;">${(n.gpu || 'N/A').substring(0,25)}...</span><br>
-                            THREAT: <span style="color:${n.threat_type !== 'none' ? 'var(--danger)' : 'var(--java)'}">${n.threat_type.toUpperCase()}</span>
+                            ISP: ${n.provider || 'Unk'}<br>
+                            THREAT: <span style="color:${threat !== 'NONE' ? 'var(--danger)' : 'var(--java)'}">${threat}</span>
                         </div>
-                        <div class="osint-grid">
-                            <button class="btn" style="border-color:#ff9800" onclick="window.open('https://www.abuseipdb.com/check/${n.ip}')">ABUSE_DB</button>
-                            <button class="btn" style="border-color:#cfd8dc" onclick="window.open('https://www.shodan.io/host/${n.ip}')">SHODAN</button>
-                        </div>
-                        <button class="btn" style="margin-top:10px; border-color:${isBanned ? 'var(--java)' : 'var(--danger)'}; color:${isBanned ? 'var(--java)' : 'var(--danger)'}" 
-                                onclick="toggleBan('${n.ip}')">
-                            ${isBanned ? 'REVOKE BAN' : 'HARD BLOCK TARGET'}
+                        <button class="btn" style="border-color:${isBanned ? 'var(--java)' : 'var(--danger)'}; color:${isBanned ? 'var(--java)' : 'var(--danger)'}" onclick="toggleBan('${n.ip}')">
+                            ${isBanned ? 'UNBAN' : 'TERMINATE ACCESS'}
                         </button>
                     </div>`;
             });
@@ -213,27 +131,10 @@
 
         function log(msg) {
             const t = document.getElementById('terminal');
-            t.innerHTML = `<div>> ${new Date().toLocaleTimeString()} | ${msg}</div>` + t.innerHTML;
+            t.innerHTML = `<div>> ${msg}</div>` + t.innerHTML;
         }
 
-        function exportToCSV() {
-            _supabase.from('telemetry').select('*').then(({data}) => {
-                const head = "IP,Location,Threat,Time\n";
-                const rows = data.map(n => `${n.ip},"${n.location}",${n.threat_type},${n.created_at}`).join("\n");
-                const blob = new Blob([head + rows], {type: 'text/csv'});
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = `sixeyes_audit.csv`; a.click();
-            });
-        }
-
-        // 3. STARTUP
-        window.onload = () => { 
-            runShield(); // O'zini himoya qilish
-            initMap(); 
-            sync(); 
-            setInterval(sync, 10000); 
-            log("System initialized. RLS Policies active.");
-        };
+        window.onload = () => { initMap(); sync(); setInterval(sync, 10000); };
     </script>
 </body>
 </html>
