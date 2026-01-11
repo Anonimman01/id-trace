@@ -2,6 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIX EYES | HARDENED v15.5</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,17 +14,18 @@
         .sidebar { width: 350px; background: var(--panel); border-right: 1px solid #1a1a1a; padding: 15px; display: flex; flex-direction: column; z-index: 10; }
         .main { flex: 1; padding: 20px; overflow-y: auto; background: radial-gradient(circle at center, #050505 0%, #000 100%); }
         .visuals-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; margin-bottom: 20px; height: 280px; }
-        #map { background: #000; border: 1px solid #222; border-radius: 4px; }
+        #map { background: #000; border: 1px solid #222; border-radius: 4px; height: 100%; }
         .chart-container { background: var(--panel); border: 1px solid #222; padding: 10px; display: flex; flex-direction: column; justify-content: space-around; }
         .blacklist-area { background: #000; border: 1px solid var(--danger); padding: 10px; font-size: 11px; margin-top: 10px; height: 120px; overflow-y: auto; color: var(--danger); }
         .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 15px; }
-        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); transition: 0.3s; }
+        .card { background: var(--panel); border: 1px solid #1a1a1a; padding: 15px; border-left: 3px solid var(--neon); transition: 0.3s; position: relative; }
         .is-banned { border-left-color: var(--danger) !important; background: rgba(255, 0, 60, 0.05); }
         .badge { font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-right: 5px; font-weight: bold; }
         .bg-danger { background: var(--danger); color: #fff; }
         .bg-success { background: var(--java); color: #000; }
-        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 6px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 10px; text-transform: uppercase; }
-        #terminal { font-size:9px; color:var(--java); margin-top:10px; height:100px; overflow-y:auto; background: #000; padding: 5px; border: 1px solid #111; }
+        .btn { background: none; border: 1px solid var(--neon); color: var(--neon); padding: 6px; cursor: pointer; width: 100%; margin-top: 5px; font-size: 10px; text-transform: uppercase; transition: 0.2s; }
+        .btn:hover { background: var(--neon); color: #000; }
+        #terminal { font-size:9px; color:var(--java); margin-top:10px; height:100px; overflow-y:auto; background: #000; padding: 5px; border: 1px solid #111; border-radius: 4px; }
         .investigator-panel { font-size: 10px; color: #666; background: #050505; padding: 10px; margin-top: 10px; border: 1px dashed #222; }
     </style>
 </head>
@@ -31,9 +33,13 @@
 
     <aside class="sidebar">
         <h2 style="color:#fff; margin:0;">🌀 SIX EYES v15.5</h2>
-        <button class="btn" style="border-color:var(--java); color:var(--java);" onclick="exportToCSV()">📂 EXPORT DATABASE</button>
-        <div style="font-size: 10px; color: var(--danger); margin-top: 15px;">🔴 SERVER-SIDE BLACKLIST:</div>
-        <div id="blacklist" class="blacklist-area">Kutilmoqda...</div>
+        <p style="font-size: 8px; color: #444; margin-bottom: 20px;">CONNECTED TO: kisbfmcxvcwtxfwbgexb</p>
+        
+        <button class="btn" style="border-color:var(--java); color:var(--java);">📂 EXPORT DATABASE</button>
+        
+        <div style="font-size: 10px; color: var(--danger); margin-top: 15px;">🔴 LIVE BLACKLIST:</div>
+        <div id="blacklist" class="blacklist-area">Sinxronizatsiya...</div>
+        
         <div id="terminal"></div>
     </aside>
 
@@ -42,13 +48,13 @@
             <div id="map"></div>
             <div class="chart-container">
                 <div style="text-align: center;">
-                    <label style="font-size: 10px; color: #555;">SECURITY STATUS</label>
+                    <label style="font-size: 10px; color: #555;">FIREWALL STATUS</label>
                     <div id="integrity-stat" style="font-size: 45px; font-weight: bold;">100%</div>
-                    <div style="font-size: 10px; color: var(--java);">ACTIVE RLS PROTECTION</div>
+                    <div style="font-size: 10px; color: var(--java);">✔ RLS ACTIVE & ENFORCED</div>
                 </div>
-                <div style="font-size: 11px; border-top: 1px solid #222; padding-top: 10px; margin-top:10px;">
-                    <div style="display:flex; justify-content:space-between;"><span>TOTAL LOGS:</span> <span id="stat-total">0</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>BANS:</span> <span id="stat-banned">0</span></div>
+                <div style="font-size: 11px; border-top: 1px solid #222; padding-top: 10px;">
+                    <div style="display:flex; justify-content:space-between;"><span>LOG ENTRIES:</span> <span id="stat-total">0</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>BANNED TARGETS:</span> <span id="stat-banned" style="color:var(--danger)">0</span></div>
                 </div>
             </div>
         </div>
@@ -56,16 +62,15 @@
     </main>
 
     <script>
-        const _supabase = window.supabase.createClient(
-    'https://kisbfmcxvcwtxfwbgexb.supabase.co', 
-    'sb_publishable_ZpaoCxnW8rncY0JVm9S5VA_fn3yL61S'
-);
+        // SUPABASE SOZLAMALARI
+        const SUPABASE_URL = 'https://kisbfmcxvcwtxfwbgexb.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_ZpaoCxnW8rncY0JVm9S5VA_fn3yL61S';
+        
+        const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Tizim holatini tekshirish uchun log qo'shamiz
-console.log("Supabase Client initialized with key ending in ...61S");
         let map, globalBlacklist = [];
 
-        function sanitize(str) { return str ? str.replace(/[<>'"/;()]/g, "⚠️") : "N/A"; }
+        function sanitize(str) { return str ? str.toString().replace(/[<>'"/;()]/g, "⚠️") : "N/A"; }
 
         function initMap() {
             map = L.map('map', {zoomControl: false}).setView([20, 0], 2);
@@ -74,25 +79,87 @@ console.log("Supabase Client initialized with key ending in ...61S");
 
         async function sync() {
             try {
+                // 1. Blacklistni olish
                 const { data: bData, error: bErr } = await _supabase.from('blacklist').select('ip');
-                if (bErr) throw bErr;
+                if (bErr) {
+                    console.error("Blacklist error:", bErr.message);
+                    log("ERR: Blacklist ulanmadi");
+                }
                 globalBlacklist = bData ? bData.map(b => b.ip) : [];
-                
+
+                // 2. Telemetriyani olish
                 const { data: tData, error: tErr } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false });
                 if (tErr) throw tErr;
-                
+
                 render(tData || []);
                 updateStats(tData || [], globalBlacklist);
                 updateBlacklistUI();
+                log("System Synced: " + new Date().toLocaleTimeString());
+
             } catch (e) {
-                log("SYNC ERROR: " + e.message);
+                log("CRITICAL SYNC ERROR: " + e.message);
+                console.error(e);
+            }
+        }
+
+        function render(nodes) {
+            const d = document.getElementById('display');
+            d.innerHTML = '';
+            
+            if (nodes.length === 0) {
+                d.innerHTML = '<div style="color:#444">Ma\'lumotlar bazasi bo\'sh...</div>';
+                return;
+            }
+
+            nodes.forEach(n => {
+                const isBanned = globalBlacklist.includes(n.ip);
+                // Xavfsiz threat_type: null yoki undefined bo'lsa 'UNKNOWN' ko'rsatadi
+                const threat = (n.threat_type || 'unknown').toUpperCase();
+
+                d.innerHTML += `
+                    <div class="card ${isBanned ? 'is-banned' : ''}">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                ${isBanned ? '<span class="badge bg-danger">TERMINATED</span>' : '<span class="badge bg-success">MONITORED</span>'}
+                                ${n.is_bot ? '<span class="badge" style="background:#444">BOT</span>' : ''}
+                            </div>
+                            <span style="font-size:8px; color:#333">${n.uid || 'NO_UID'}</span>
+                        </div>
+                        <div style="font-weight:bold; font-size:20px; color:#fff; margin: 10px 0;">${sanitize(n.ip)}</div>
+                        <div style="font-size:11px; color:var(--neon);">📍 ${sanitize(n.location)}</div>
+                        
+                        <div class="investigator-panel">
+                            ISP: <span style="color:#aaa">${sanitize(n.provider)}</span><br>
+                            THREAT: <span style="color:${threat !== 'UNKNOWN' && threat !== 'NONE' ? 'var(--danger)' : 'var(--java)'}">${threat}</span>
+                        </div>
+
+                        <button class="btn" style="margin-top:15px; border-color:${isBanned ? 'var(--java)' : 'var(--danger)'}; color:${isBanned ? 'var(--java)' : 'var(--danger)'}" 
+                                onclick="toggleBan('${n.ip}')">
+                            ${isBanned ? 'REVOKE BAN' : 'HARD BLOCK TARGET'}
+                        </button>
+                    </div>`;
+            });
+        }
+
+        async function toggleBan(ip) {
+            const isBanned = globalBlacklist.includes(ip);
+            log(`Processing ${ip}...`);
+            try {
+                if (isBanned) {
+                    await _supabase.from('blacklist').delete().eq('ip', ip);
+                } else {
+                    await _supabase.from('blacklist').insert([{ ip: ip, reason: 'Manual Block' }]);
+                }
+                sync();
+            } catch (err) {
+                log("Action failed: " + err.message);
             }
         }
 
         function updateBlacklistUI() {
             const container = document.getElementById('blacklist');
             container.innerHTML = globalBlacklist.length > 0 
-                ? globalBlacklist.map(ip => `<div>🚫 ${ip} <span style="float:right;cursor:pointer" onclick="toggleBan('${ip}')">OFF</span></div>`).join('')
+                ? globalBlacklist.map(ip => `<div style="margin-bottom:5px;">🚫 ${ip}</div>`).join('')
                 : "Blacklist bo'sh";
         }
 
@@ -101,46 +168,18 @@ console.log("Supabase Client initialized with key ending in ...61S");
             document.getElementById('stat-banned').innerText = banned.length;
         }
 
-        async function toggleBan(ip) {
-            const isBanned = globalBlacklist.includes(ip);
-            if (isBanned) {
-                await _supabase.from('blacklist').delete().eq('ip', ip);
-            } else {
-                await _supabase.from('blacklist').insert([{ ip: ip, reason: 'Manual' }]);
-            }
-            sync();
-        }
-
-        function render(nodes) {
-            const d = document.getElementById('display');
-            d.innerHTML = '';
-            nodes.forEach(n => {
-                const isBanned = globalBlacklist.includes(n.ip);
-                // XATONI TUZATISH: threat_type bo'sh bo'lsa 'none' ishlatiladi
-                const threat = (n.threat_type || 'none').toUpperCase();
-                
-                d.innerHTML += `
-                    <div class="card ${isBanned ? 'is-banned' : ''}">
-                        <div style="font-size:8px; color:#555">UID: ${n.uid || 'N/A'}</div>
-                        <div style="font-weight:bold; font-size:18px; color:#fff;">${sanitize(n.ip)}</div>
-                        <div style="font-size:11px; color:var(--neon);">📍 ${sanitize(n.location)}</div>
-                        <div class="investigator-panel">
-                            ISP: ${n.provider || 'Unk'}<br>
-                            THREAT: <span style="color:${threat !== 'NONE' ? 'var(--danger)' : 'var(--java)'}">${threat}</span>
-                        </div>
-                        <button class="btn" style="border-color:${isBanned ? 'var(--java)' : 'var(--danger)'}; color:${isBanned ? 'var(--java)' : 'var(--danger)'}" onclick="toggleBan('${n.ip}')">
-                            ${isBanned ? 'UNBAN' : 'TERMINATE ACCESS'}
-                        </button>
-                    </div>`;
-            });
-        }
-
         function log(msg) {
             const t = document.getElementById('terminal');
-            t.innerHTML = `<div>> ${msg}</div>` + t.innerHTML;
+            const entry = document.createElement('div');
+            entry.innerHTML = `> ${msg}`;
+            t.prepend(entry);
         }
 
-        window.onload = () => { initMap(); sync(); setInterval(sync, 10000); };
+        window.onload = () => {
+            initMap();
+            sync();
+            setInterval(sync, 10000); // Har 10 soniyada yangilash
+        };
     </script>
 </body>
 </html>
