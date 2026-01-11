@@ -3,43 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIX EYES | GOD OVERSEER v4.2</title>
+    <title>SIX EYES | SUPREME OVERSEER v4.5</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --neon: #00d9ff; --bg: #020202; --panel: #0a0a0c; --java: #00ff41; --danger: #ff003c; --warn: #ffcc00; }
         body { background: var(--bg); color: var(--neon); font-family: 'Consolas', monospace; margin: 0; padding: 20px; overflow-x: hidden; }
         
-        /* Glassmorphism Sidebar */
-        .sidebar { background: rgba(10, 10, 12, 0.95); border-right: 1px solid #1a1a1a; height: 100vh; position: fixed; left: 0; top: 0; width: 320px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
+        /* Sidebar */
+        .sidebar { background: rgba(10, 10, 12, 0.95); border-right: 1px solid #1a1a1a; height: 100vh; position: fixed; left: 0; top: 0; width: 320px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; z-index: 100; }
         .main-content { margin-left: 340px; }
 
-        /* Terminal Effect */
-        #console-log { flex-grow: 1; overflow-y: auto; background: #000; padding: 10px; border: 1px solid #111; font-size: 11px; color: var(--java); margin-top: 20px; scroll-behavior: smooth; }
-        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #080808; padding-bottom: 3px; line-height: 1.4; }
+        /* Live Console */
+        #console-log { flex-grow: 1; overflow-y: auto; background: #000; padding: 10px; border: 1px solid #111; font-size: 11px; color: var(--java); margin-top: 20px; scroll-behavior: smooth; border-left: 2px solid var(--java); }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #080808; padding-bottom: 3px; opacity: 0.8; }
 
-        /* Advanced Data Cards */
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
-        .target-card { background: var(--panel); border: 1px solid #1a1a1a; border-radius: 4px; padding: 20px; position: relative; transition: 0.3s; overflow: hidden; }
-        .target-card:hover { border-color: var(--neon); box-shadow: 0 0 25px rgba(0,217,255,0.15); transform: translateY(-5px); }
-        
-        .target-card::before { content: ""; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--neon); }
-        .target-card.high-risk::before { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+        /* Analytics Row */
+        .analytics-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .security-status { background: var(--panel); border: 1px solid #111; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .security-status::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--java); animation: scan 3s infinite linear; }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        .target-card h3 { margin: 0 0 12px 0; font-size: 1.1rem; color: #fff; display: flex; align-items: center; justify-content: space-between; }
-        
-        .status-badge { font-size: 9px; padding: 2px 8px; border: 1px solid var(--java); color: var(--java); border-radius: 2px; text-transform: uppercase; }
-
-        .btn-action { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 7px 15px; font-size: 10px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .btn-action:hover { background: var(--neon); color: #000; box-shadow: 0 0 15px var(--neon); }
-        
-        /* Stats Header */
-        .stats-header { display: flex; gap: 20px; margin-bottom: 30px; }
-        .stat-item { flex: 1; background: var(--panel); padding: 20px; border-bottom: 2px solid var(--neon); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        /* Stats Cards */
+        .stats-header { display: flex; gap: 20px; margin-bottom: 25px; }
+        .stat-item { flex: 1; background: var(--panel); padding: 20px; border-bottom: 2px solid var(--neon); }
         .stat-item label { display: block; font-size: 10px; color: #444; margin-bottom: 5px; text-transform: uppercase; }
         .stat-item span { font-size: 1.5rem; font-weight: bold; color: #fff; }
 
+        /* Data Grid & Cards */
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        .target-card { background: var(--panel); border: 1px solid #1a1a1a; padding: 20px; position: relative; transition: 0.3s; }
+        .target-card:hover { border-color: var(--neon); box-shadow: 0 0 20px rgba(0,217,255,0.1); transform: translateY(-3px); }
+        .target-card.high-risk { border-left: 4px solid var(--danger); }
+        .target-card h3 { margin: 0 0 10px 0; font-size: 1.1rem; color: #fff; display: flex; justify-content: space-between; }
+
+        /* Search Bar */
+        .search-box { margin-bottom: 25px; background: var(--panel); padding: 15px; display: flex; gap: 10px; border: 1px solid #111; }
         input { background:#000; border:1px solid #222; color:var(--neon); padding:12px; flex:1; outline: none; font-family: inherit; }
-        input:focus { border-color: var(--neon); }
+
+        .btn-action { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 8px 15px; font-size: 10px; cursor: pointer; text-transform: uppercase; }
+        .btn-action:hover { background: var(--neon); color: #000; }
+        .status-badge { font-size: 9px; padding: 2px 6px; border: 1px solid var(--java); color: var(--java); border-radius: 2px; }
 
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #222; }
@@ -48,34 +51,44 @@
 <body>
 
     <aside class="sidebar">
-        <h2 style="color: #fff; letter-spacing: 3px; margin: 0;">🌀 SIX EYES</h2>
-        <p style="font-size: 10px; color: #444; margin-bottom: 20px;">SUPREME COMMAND & CONTROL</p>
+        <h2 style="color: #fff; letter-spacing: 3px;">🌀 SIX EYES</h2>
+        <p style="font-size: 10px; color: #444;">V4.5 SUPREME CONTROL</p>
         
         <div id="console-log">
-            <div class="log-entry">> Initializing Void Connection...</div>
-            <div class="log-entry">> Six Eyes Protocol v4.2 Active.</div>
+            <div class="log-entry">> Initializing System Overlook...</div>
         </div>
 
         <div style="margin-top: 20px;">
-            <button class="btn-action" onclick="sync()" style="width: 100%; padding: 12px;">FORCE RE-SCAN</button>
+            <button class="btn-action" onclick="sync()" style="width: 100%; padding: 12px;">MANUAL RE-SYNC</button>
         </div>
     </aside>
 
     <main class="main-content">
-        <div class="stats-header">
-            <div class="stat-item"><label>Active Filter</label><span id="st-id">ALL_NODES</span></div>
-            <div class="stat-item"><label>Total Captured</label><span id="st-total">0</span></div>
-            <div class="stat-item"><label>Last Telemetry</label><span id="st-time">--:--:--</span></div>
-        </div>
-
-        <div style="margin-bottom: 25px; background: var(--panel); padding: 15px; display: flex; gap: 10px; border: 1px solid #111;">
-            <input type="text" id="target-search" placeholder="ENTER OPERATION_ID TO FILTER NODES...">
-            <button class="btn-action" onclick="executeSearch()">EXECUTE SCAN</button>
-            <button class="btn-action" style="border-color: #555; color: #555;" onclick="clearFilter()">CLEAR</button>
-        </div>
-
-        <div class="data-grid" id="data-display">
+        <div class="analytics-row">
+            <div class="security-status" style="align-items: flex-start;">
+                <label style="font-size: 10px; color: #444;">LIVE ACTIVITY STREAM</label>
+                <div id="live-stream" style="font-size: 11px; margin-top: 10px; color: #eee; line-height: 1.6;"></div>
             </div>
+            <div class="security-status">
+                <label style="font-size: 10px; color: #444;">SECURITY INTEGRITY</label>
+                <div id="safety-score" style="font-size: 48px; font-weight: bold; color: var(--java);">100%</div>
+                <div id="safety-label" style="font-size: 10px; color: var(--java);">NO THREATS DETECTED</div>
+            </div>
+        </div>
+
+        <div class="stats-header">
+            <div class="stat-item"><label>Total Records</label><span id="st-total">0</span></div>
+            <div class="stat-item"><label>Unique Hosts</label><span id="st-unique">0</span></div>
+            <div class="stat-item"><label>System Uptime</label><span id="st-time">00:00:00</span></div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="target-search" placeholder="FILTER BY OPERATION_ID (e.g. GOJO001)">
+            <button class="btn-action" onclick="executeSearch()">SEARCH</button>
+            <button class="btn-action" style="border-color:#333; color:#333;" onclick="clearFilter()">RESET</button>
+        </div>
+
+        <div class="data-grid" id="data-display"></div>
     </main>
 
     <script>
@@ -94,71 +107,90 @@
         async function sync() {
             const { data, count } = await _supabase.from('telemetry').select('*', { count: 'exact' }).order('created_at', { ascending: false });
             if(data) {
-                if(count > lastCount && lastCount !== 0) term(`ALERT: ${count - lastCount} new node(s) detected!`);
+                if(count > lastCount && lastCount !== 0) {
+                    term(`NEW TELEMETRY ACQUIRED: ${data[0].ip}`);
+                    updateLiveStream(data[0]);
+                }
                 lastCount = count;
-                
                 document.getElementById('st-total').innerText = count;
-                document.getElementById('st-time').innerText = new Date().toLocaleTimeString();
+                document.getElementById('st-unique').innerText = [...new Set(data.map(i => i.ip))].length;
+                updateSecurityMetrics(data);
                 render(data);
             }
         }
 
-        async function executeSearch() {
-            const id = document.getElementById('target-search').value.trim();
-            if(!id) return;
-            term(`Filtering by ID: ${id}`);
-            const { data } = await _supabase.from('telemetry').select('*').eq('operation_id', id).order('created_at', { ascending: false });
-            if(data) {
-                document.getElementById('st-id').innerText = id;
-                render(data);
-                term(`Found ${data.length} matches.`);
-            }
+        function updateLiveStream(node) {
+            const stream = document.getElementById('live-stream');
+            const entry = `<div>[${new Date().toLocaleTimeString()}] <span style="color:var(--neon)">${node.ip}</span> connected from ${node.location}</div>`;
+            stream.innerHTML = entry + stream.innerHTML;
         }
 
-        function clearFilter() {
-            document.getElementById('target-search').value = '';
-            document.getElementById('st-id').innerText = 'ALL_NODES';
-            sync();
+        function updateSecurityMetrics(nodes) {
+            // Xavfli IP-lar ro'yxati (Buni kengaytirishingiz mumkin)
+            const riskIps = ['72.153.230.168', '94.230.231.77'];
+            const threats = nodes.filter(n => riskIps.includes(n.ip)).length;
+            
+            const score = Math.max(0, 100 - (threats * 12));
+            const scoreEl = document.getElementById('safety-score');
+            const labelEl = document.getElementById('safety-label');
+            
+            scoreEl.innerText = score + "%";
+            if (score < 70) {
+                scoreEl.style.color = "var(--danger)";
+                labelEl.style.color = "var(--danger)";
+                labelEl.innerText = "CRITICAL THREATS DETECTED";
+            } else {
+                scoreEl.style.color = "var(--java)";
+                labelEl.style.color = "var(--java)";
+                labelEl.innerText = "SYSTEM SECURE";
+            }
         }
 
         function render(nodes) {
             const display = document.getElementById('data-display');
             display.innerHTML = '';
             nodes.forEach(node => {
-                const isRisk = node.ip === '94.230.231.77'; // O'zingizni IP misolida
-                const os = node.user_agent.includes("Windows") ? "💻 WIN" : (node.user_agent.includes("Android") ? "📱 ANDROID" : "🌐 WEB");
+                const isHighRisk = node.ip === '72.153.230.168';
+                const os = node.user_agent.includes("Windows") ? "💻 WIN" : "📱 MOB";
                 
-                const card = `
-                    <div class="target-card ${isRisk ? 'high-risk' : ''}">
-                        <span class="status-badge">${isRisk ? 'SHRINE ACTIVE / RISK' : 'STABLE NODE'}</span>
-                        <h3>${node.ip} <small style="font-size: 10px; color: var(--java)">${os}</small></h3>
-                        
-                        <div style="margin: 10px 0;">
-                            <p style="font-size: 11px; color: #555; margin: 2px 0;">OP_ID: <span style="color:var(--neon)">${node.operation_id}</span></p>
-                            <p style="font-size: 13px; color: #eee; margin: 5px 0;">📍 ${node.location}</p>
-                            <p style="font-size: 10px; color: #333;">${new Date(node.created_at).toLocaleString()}</p>
-                        </div>
-
-                        <div style="margin-top: 15px; display: flex; gap: 8px;">
+                display.innerHTML += `
+                    <div class="target-card ${isHighRisk ? 'high-risk' : ''}">
+                        <span class="status-badge" style="${isHighRisk ? 'color:var(--danger); border-color:var(--danger);' : ''}">
+                            ${isHighRisk ? 'THREAT DETECTED' : 'STABLE NODE'}
+                        </span>
+                        <h3>${node.ip} <small style="font-size:10px;">${os}</small></h3>
+                        <p style="font-size:11px; color:#555;">ID: <span style="color:var(--neon)">${node.operation_id}</span></p>
+                        <p style="font-size:13px; margin:10px 0;">📍 ${node.location}</p>
+                        <p style="font-size:10px; color:#333;">${new Date(node.created_at).toLocaleString()}</p>
+                        <div style="margin-top:15px; display:flex; gap:10px;">
                             <button class="btn-action" onclick="window.open('https://www.abuseipdb.com/check/${node.ip}')">ANALYZE</button>
-                            <button class="btn-action" style="border-color: var(--danger); color: var(--danger);" onclick="deleteNode('${node.id}')">PURGE</button>
+                            <button class="btn-action" style="border-color:var(--danger); color:var(--danger);" onclick="deleteNode('${node.id}')">PURGE</button>
                         </div>
                     </div>`;
-                display.innerHTML += card;
             });
         }
 
-        async function deleteNode(uuid) {
-            if(!confirm("Erase node from infinity void?")) return;
-            await _supabase.from('telemetry').delete().eq('id', uuid);
-            term("Node successfully purged.");
+        async function executeSearch() {
+            const val = document.getElementById('target-search').value;
+            const { data } = await _supabase.from('telemetry').select('*').eq('operation_id', val);
+            if(data) render(data);
+        }
+
+        function clearFilter() {
+            document.getElementById('target-search').value = '';
             sync();
         }
 
-        window.onload = () => {
-            sync();
-            setInterval(sync, 10000);
-        };
+        async function deleteNode(id) {
+            if(confirm("Erase this telemetry data?")) {
+                await _supabase.from('telemetry').delete().eq('id', id);
+                sync();
+            }
+        }
+
+        setInterval(() => { document.getElementById('st-time').innerText = new Date().toLocaleTimeString(); }, 1000);
+        setInterval(sync, 10000);
+        window.onload = sync;
     </script>
 </body>
 </html>
